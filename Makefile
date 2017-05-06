@@ -2,14 +2,14 @@ CC = g++
 CFLAGS = -Wall 
 LDFLAGS = -L/usr/local/lib -lzmq
 
-EXEC = Ventilator #adding here name of the program
+EXEC = Ventilator #adding here the name of the program
 SOURCES = $(wildcard *.cpp)
 OBJECTS = $(SOURCES:.cpp=.o)
 
 $(EXEC): $(OBJECTS)
 	$(CC) $(OBJECTS) -o $(EXEC) $(LDFLAGS)
 		
-%.o: %.cpp
+%.o: %.cpp %.hpp
 	$(CC) -c $(CFLAGS) $< -o $@
 	
 clean:
