@@ -10,6 +10,7 @@
 #include <zmq.hpp>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <time.h>
 
 #if (defined (WIN32))
@@ -41,6 +42,7 @@ int main () {
         zmq::message_t message(20);
         snprintf ((char *) message.data(), 20 ,
             "%05d %d %d", zipcode, temperature, relhumidity);
+    
         publisher.send(message);
 
     }
