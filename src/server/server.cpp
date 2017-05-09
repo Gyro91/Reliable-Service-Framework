@@ -7,13 +7,14 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <iostream>
 #include "../../include/types.hpp"
 
 int32_t main (int32_t argc, char_t* argv[])
 {
-	uint8_t arg = 1;
+	int d = *argv[0];
+	std::cout << d << std::endl;
 
-	printf("%d\n", arg);
 
 	return EXIT_SUCCESS;
 }
