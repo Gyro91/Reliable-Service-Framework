@@ -9,4 +9,4 @@ uint8_t get_result(uint32_t* res);
  * 
  */
 
-uint8_t service_request(uint8_t id, int32_t param)
+uint8_t service_request(uint8_t id, int32_t param);
