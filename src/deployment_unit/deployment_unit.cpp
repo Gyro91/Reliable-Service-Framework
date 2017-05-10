@@ -18,7 +18,7 @@
 #define NUM_OPTIONS 2
 #define NUM_MIN_NMR 3
 
-int32_t main (int32_t argc, char_t* argv[])
+int32_t main(int32_t argc, char_t* argv[])
 {
 	int8_t ret;
 	uint8_t i;
@@ -30,12 +30,12 @@ int32_t main (int32_t argc, char_t* argv[])
 	get_arg(argc, argv, &num_copy_server, &service, NUM_OPTIONS);
 	if (num_copy_server < NUM_MIN_NMR) {
 		std::cout << "Error: the server copies must be greater"
-				" than "<< NUM_MIN_NMR << std::endl;
+				" than " << NUM_MIN_NMR << std::endl;
 		exit(EXIT_FAILURE);
 	}
 
 	/* Allocating memory for the pid of each server */
-	list_server_pid = (pid_t *)malloc(sizeof(pid_t) * num_copy_server);
+	list_server_pid = (pid_t *) malloc(sizeof(pid_t) * num_copy_server);
 	if (list_server_pid == NULL) {
 		std::cout << "Error allocating memory for servers pid"
 				<< std::endl;
@@ -64,6 +64,7 @@ int32_t main (int32_t argc, char_t* argv[])
 	}
 
 	while (true);
+
 	free((void *)list_server_pid);
 
 	return EXIT_SUCCESS;
