@@ -10,6 +10,6 @@
 
 #include "types.hpp"
 
-extern void get_arg(int32_t, char_t **, uint8_t *);
+extern void get_arg(int32_t, char_t **, char_t *, char_t *, char_t);
 
 #endif /* INCLUDE_CHECK_UTIL_HPP_ */
