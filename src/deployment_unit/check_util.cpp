@@ -11,10 +11,15 @@
 #include <ctype.h>
 #include "../../include/types.hpp"
 
+
+
 /*
- * This function checks the options passed to the program and eventually
- * store them using the pointer parameters.
- *
+ * @brief Retrieves the option passed to the program
+ * @param argc Number of options passed
+ * @param argv Pointer to the options passed
+ * @param num_cp_server Where to store the number of copies of a server
+ * @param service Where to store the number of service to be deployed
+ * @retval None
  */
 
 void get_arg(int32_t argc, char_t *argv[], char_t *num_cp_server,
