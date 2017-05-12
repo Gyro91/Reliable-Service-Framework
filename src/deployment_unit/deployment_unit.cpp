@@ -38,7 +38,7 @@ int32_t main(int32_t argc, char_t* argv[])
 	/* Allocating memory for the pid of each server */
 	try {
 		list_server_pid = new pid_t[num_copy_server];
-	} catch(std::bad_alloc& ba) {
+	} catch (std::bad_alloc& ba) {
 		std::cerr << "bad_alloc caught: " << ba.what() << '\n';
 		exit(EXIT_FAILURE);
 	}

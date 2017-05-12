@@ -37,7 +37,7 @@ void get_arg(int32_t argc, char_t *argv[], char_t &num_cp_server,
 
 		cnt_options++;
 
-		switch (c) {
+		switch (c) {			
 		case 'n':
 			num_cp_server = atoi(optarg);
 			break;

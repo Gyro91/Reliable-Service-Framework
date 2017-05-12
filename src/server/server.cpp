@@ -11,14 +11,20 @@
 
 int32_t main (int32_t argc, char_t* argv[])
 {	
-	int service = *argv[0], id = *argv[1];
+	uint8_t service = *argv[0], id = *argv[1];
+	Server *server;
+	std::string server_address("127.0.0.1");
 
-	std::cout << id << std::endl;
-
-	Server *server = new Server(id, "127.0.0.1", 5000,
-				"127.0.0.1", 5000);
-
-	server->wait_request();				
+	try {
+		server = new Server(id, service, server_address, 5000,
+				server_address, 5001);
+	} catch (std::bad_alloc& ba) {
+		std::cerr << "bad_alloc caught: " << ba.what() <<  std::endl;
+		exit(EXIT_FAILURE);
+	}	
+//	server->wait_request();				
+	
+	std::cout << (int)id << std::endl;
 	
 
 
