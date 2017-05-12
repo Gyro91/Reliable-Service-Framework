@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <new>
 #include <iostream>
 #include "../../include/check_util.hpp"
 #define NUM_OPTIONS 2
@@ -27,33 +28,39 @@ int32_t main(int32_t argc, char_t* argv[])
 	pid_t *list_server_pid = NULL;
 
 	/* Parsing the arguments */
-	get_arg(argc, argv, &num_copy_server, &service, NUM_OPTIONS);
+	get_arg(argc, argv, num_copy_server, service, NUM_OPTIONS);
 	if (num_copy_server < NUM_MIN_NMR) {
-		std::cout << "Error: the server copies must be greater"
+		std::cerr << "Error: the server copies must be greater"
 				" than " << NUM_MIN_NMR << std::endl;
 		exit(EXIT_FAILURE);
 	}
 
 	/* Allocating memory for the pid of each server */
-	list_server_pid = (pid_t *) malloc(sizeof(pid_t) * num_copy_server);
-	if (list_server_pid == NULL) {
-		std::cout << "Error allocating memory for servers pid"
-				<< std::endl;
+	try {
+		list_server_pid = new pid_t[num_copy_server];
+	} catch(std::bad_alloc& ba) {
+		std::cerr << "bad_alloc caught: " << ba.what() << '\n';
 		exit(EXIT_FAILURE);
 	}
 
-	while (true) {
+	/* Spawning server copies */
+	std::cout << "#Deployment_Unit: Spawning server copies"
+			<< std::endl;
+	for (;;) {
 		if (i == num_copy_server) {
+			std::cout << "#Deployment_Unit: "
+					"Server copies deployed"
+						<< std::endl;
 			/* Wait on the children */
 			wait(&status);
-			std::cout << "Wake up!Something happened to "
+			std::cerr << "Wake up!Something happened to "
 					"my children!" << std::endl;
 			break;
 		}
 		list_server_pid[i] = fork();
 		if (list_server_pid[i] == 0) {
 			/* Becoming one of the redundant copies */
-			ret = execlp("./server", &service,
+			ret = execlp("./server", &service, &i,
 					(char_t *)NULL);
 			if (ret == -1) {
 				perror("Error execlp on server");
@@ -64,8 +71,8 @@ int32_t main(int32_t argc, char_t* argv[])
 	}
 
 	while (true);
-
-	free((void *)list_server_pid);
+	/* Cleaning memory */
+	delete[] list_server_pid;
 
 	return EXIT_SUCCESS;
 }

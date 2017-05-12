@@ -13,17 +13,18 @@
 
 
 
-/*
+/**
  * @brief Retrieves the option passed to the program
  * @param argc Number of options passed
  * @param argv Pointer to the options passed
  * @param num_cp_server Where to store the number of copies of a server
  * @param service Where to store the number of service to be deployed
+ * @param num_options Number of options expected
  * @retval None
  */
 
-void get_arg(int32_t argc, char_t *argv[], char_t *num_cp_server,
-		char_t *service, char_t num_options)
+void get_arg(int32_t argc, char_t *argv[], char_t &num_cp_server,
+		char_t &service, char_t num_options)
 {
 	char_t c;
 	uint8_t cnt_options = 0;
@@ -38,10 +39,10 @@ void get_arg(int32_t argc, char_t *argv[], char_t *num_cp_server,
 
 		switch (c) {
 		case 'n':
-			*num_cp_server = atoi(optarg);
+			num_cp_server = atoi(optarg);
 			break;
 		case 's':
-			*service = atoi(optarg);
+			service = atoi(optarg);
 			break;
 		case '?':
 			if (optopt == 't')

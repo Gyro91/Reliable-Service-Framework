@@ -1,8 +1,6 @@
 /*
  * types.hpp
  *
- *  Created on: May 9, 2017
- *      Author: matteo
  */
 
 #ifndef TYPES_HPP_
