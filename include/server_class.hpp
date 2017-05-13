@@ -9,6 +9,7 @@
 #include <zmq.hpp>
 #include <string>
 #include "types.hpp"
+#include "service.hpp"
 
 class Server {
 
@@ -16,7 +17,9 @@ private:
 	/* Idientifier among server copies */
 	uint8_t id;
 	/* Service type that must be provided */
-	uint8_t service_type;
+	service_type_t service_type;
+	/* Service to be provided */
+	service_body service;
 	/* Variables for communication */
 	std::string server_address;
 	uint16_t server_port;

@@ -1,8 +1,6 @@
 /*
  * check_util.cpp
  *
- *  Created on: May 9, 2017
- *      Author: matteo
  */
 
 #include <unistd.h>

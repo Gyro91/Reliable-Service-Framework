@@ -22,11 +22,11 @@ int32_t main (int32_t argc, char_t* argv[])
 		std::cerr << "bad_alloc caught: " << ba.what() <<  std::endl;
 		exit(EXIT_FAILURE);
 	}	
-//	server->wait_request();				
+	server->step();				
 	
 	std::cout << (int)id << std::endl;
 	
-
+	delete server;
 
 	return EXIT_SUCCESS;
 }

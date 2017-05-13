@@ -4,9 +4,6 @@
  * This unit deploys a redundant server. It creates num_copy_server copies
  * of a specified server.
  *
- *
- *  Created on: May 9, 2017
- *      Author: matteo
  */
 
 #include <stdio.h>

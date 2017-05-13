@@ -9,25 +9,27 @@
  * @brief Server constructor that initializes alle the private data and
  * 	  claims memory for ZPQ sockets. Then it connects to the socket.
  * @param id_server Identifier among server copies
- * @param service Service type to be deployed
+ * @param service_t Service type to be deployed
  * @param server_p Server receive port
  * @param broker_addr Broker address
  * @param broker_p Broker port
  * 
  */
 
-Server::Server(uint8_t id_server, uint8_t service, std::string server_addr, 
+Server::Server(uint8_t id_server, uint8_t service_t, std::string server_addr, 
 		uint16_t server_p, std::string broker_addr, uint16_t broker_p) 
 {
 	char_t str[MAX_LENGTH_STRING_PORT];
 	std::string port, conf;
 
 	id = id_server;
-	service_type = service;
+	service_type = (service_type_t)service_t;
 	server_port = server_p;
 	broker_port = broker_p;
 	server_address = server_addr;
 	broker_address = broker_addr;
+
+	service = get_service_body(service_type);
 
 	/* Allocating ZMQ context */
 	try {
@@ -87,4 +89,10 @@ void Server::deliver_service()
 {
 
 }
+
+void Server::step()
+{
+	int32_t ret = service(2);
 	
+	std::cout << "Result " << ret << std::endl;
+}
