@@ -14,7 +14,7 @@
 #include <iostream>
 #include "../../include/check_util.hpp"
 #define NUM_OPTIONS 2
-#define NUM_MIN_NMR 3
+#define NUM_MIN_NMR 1
 
 int32_t main(int32_t argc, char_t* argv[])
 {
@@ -67,7 +67,6 @@ int32_t main(int32_t argc, char_t* argv[])
 			i++;
 	}
 
-	while (true);
 	/* Cleaning memory */
 	delete[] list_server_pid;
 

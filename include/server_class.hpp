@@ -8,6 +8,7 @@
 
 #include <zmq.hpp>
 #include <string>
+#include <unistd.h>
 #include "types.hpp"
 #include "service.hpp"
 
@@ -20,15 +21,16 @@ private:
 	service_type_t service_type;
 	/* Service to be provided */
 	service_body service;
-	/* Variables for communication */
+	/* Addresses and ports for communication */
 	std::string server_address;
 	uint16_t server_port;
 	std::string broker_address;
 	uint16_t broker_port;
-	/* Variables for zmq communication */
+	/* Sockets for ZMQ communication */
 	zmq::context_t *context;
 	zmq::socket_t *receiver;
 	zmq::socket_t *sender;
+
 public:
 	Server(uint8_t id, uint8_t service, std::string server_addr, 
 		uint16_t server_port, std::string broker_addr, 

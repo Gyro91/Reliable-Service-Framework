@@ -23,7 +23,6 @@ int32_t increment(int32_t x)
 	return ret;
 }
 
-
 /**
  * @brief It decrements the value passed to the function
  * @param x Value to be decremented
@@ -38,7 +37,6 @@ int32_t decrement(int32_t x)
 
 	return ret;
 }
-
 
 /**
  * @brief It multiply by two the value passed to the function
