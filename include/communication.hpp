@@ -7,6 +7,7 @@
 #define INCLUDE_COMMUNICATION_HPP_
 
 #define COM_PROTOCOL "tcp://"
+#define ANY_ADDRESS "*"
 
 #define MAX_LENGTH_STRING_PORT 6
 
