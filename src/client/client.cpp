@@ -12,13 +12,12 @@
 
 int32_t main(int32_t argc, char_t* argv[])
 {	
-        bool ret;
         int32_t result;
         zmq::context_t context(1);
     	zmq::socket_t socket(context, ZMQ_REQ);
 
    	std::cout << "Connecting to the server…" << std::endl;
-	socket.connect("tcp://localhost:5555");
+	socket.connect("tcp://localhost:5559");
 
 
 	for (int32_t i = 0; i < 10; i++) {
@@ -27,15 +26,13 @@ int32_t main(int32_t argc, char_t* argv[])
        		memcpy(request.data(), (void *) &i, 4);
         	std::cout << "Sending "<< i << std::endl;
         	socket.send(request);
-
+                std::cout << "Sended "<< i << std::endl;
         	//  Get the reply.
         	zmq::message_t reply;
-    		ret = socket.recv(&reply);
-    		if (ret == true) {
-    			result = *(static_cast<int32_t*> (reply.data()));
-            		std::cout << "Received " << result << std::endl;
-            	}
-	}
+    		socket.recv(&reply);
+                result = *(static_cast<int32_t*> (reply.data()));
+                std::cout << "Received " << result << std::endl;
+        }
 
 	return EXIT_SUCCESS;
 }

@@ -1,5 +1,5 @@
 CC = g++
-CFLAGS = -Wall -std=gnu++11 -g
+CFLAGS = -Wall -std=c++11 -g
 LDFLAGS = -L/usr/local/lib -lzmq 
 
 EXEC_1 = depl_unit #adding here the name of the program

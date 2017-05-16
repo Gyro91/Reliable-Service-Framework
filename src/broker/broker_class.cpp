@@ -55,7 +55,7 @@ Broker::Broker(uint8_t nmr, uint16_t port_router, uint16_t port_reg)
 	sprintf(str, "%d", port_router);
 	conf = (protocol + "*" + ":" + str);
 	router->bind(conf.c_str());
-
+	std::cout << conf << std::endl;
 	/* Registration socket creation */
 	try {
 		reg = new zmq::socket_t(*context, ZMQ_REP);
@@ -71,9 +71,9 @@ Broker::Broker(uint8_t nmr, uint16_t port_router, uint16_t port_reg)
 
 	/* Initialize the poll set */
 	nitems = 2;
-	zmq::pollitem_t tmp = {static_cast<void*>(router), 0, ZMQ_POLLIN, 0};
+	zmq::pollitem_t tmp = {static_cast<void*>(*router), 0, ZMQ_POLLIN, 0};
 	items.push_back(tmp);
-	tmp = {static_cast<void*>(reg), 0, ZMQ_POLLIN, 0};
+	tmp = {static_cast<void*>(*reg), 0, ZMQ_POLLIN, 0};
 	items.push_back(tmp);
 
 }
@@ -89,34 +89,49 @@ Broker::~Broker()
 
 void Broker::step()
 {	
-	int32_t val, val_elab;
-	bool ret;
-	zmq::pollitem_t *itemz = static_cast<zmq::pollitem_t *> (items.data());
+	int32_t val, more, val_elab = 0;
+
 
 	for (;;) {
 		zmq::message_t message;
 
-		ret = zmq::poll(itemz, nitems, -1);
-		if (ret < 0) {
-			perror("Error poll");
-			exit(EXIT_FAILURE);
-		}
-		if (itemz[0].revents & ZMQ_POLLIN) {
-			/* Receiving the value to elaborate */
-	       		ret = router->recv(&message);
-	       		if (ret == true) {
-	       			val = *(static_cast<int32_t*> (message.data()));
-	            		std::cout << "Received " << val << std::endl;
-	       		}
-       			/* Elaborating */
-       			val_elab = ++val;
-       			sleep(1);
+		zmq::poll(items, -1);
 
-       			/* Sending back the result */
-       			zmq::message_t reply(4);
-       			memcpy(reply.data(), (void *) &val_elab, 4);
-	        	std::cout << "Sending "<< val_elab << std::endl;
-	       	   	router->send(reply);
+		if (items[0].revents & ZMQ_POLLIN) {
+
+			for(;;) {
+				/* Receiving the value to elaborate */
+	       			router->recv(&message);
+	       			size_t more_size = sizeof (more);
+                		router->getsockopt(ZMQ_RCVMORE, &more, 
+                			&more_size);
+				
+				if (more == 1) {
+					router->send(message, ZMQ_SNDMORE);	
+				}
+       				//sleep(1);
+
+       				
+	       	   		if (!more) {
+	       	   			val = *(static_cast<int32_t*> 
+	       	   				(message.data()));
+	            			std::cout << "Received " 
+	            				<< val << std::endl;
+	       		
+       					/* Elaborating */
+       					val_elab = ++val;
+	       	   			/* Sending back the result */
+       					zmq::message_t reply(4);
+       					memcpy(reply.data(), 
+       						(void *) &val_elab, 4);
+	        			std::cout << "Sending "<< val_elab 
+	        				<< std::endl;
+	       	   			router->send(reply,  
+	       	   				more? ZMQ_SNDMORE: 0);
+	       	   			break;
+	       	   		}
+	       	   	}
 		}
+
 	}
 }
