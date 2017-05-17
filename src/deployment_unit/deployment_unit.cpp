@@ -48,6 +48,8 @@ int32_t main(int32_t argc, char_t* argv[])
 			std::cout << "#Deployment_Unit: "
 					"Server copies deployed"
 						<< std::endl;
+			/* Registration phase */
+						
 			/* Wait on the children */
 			wait(&status);
 			std::cerr << "Wake up!Something happened to "

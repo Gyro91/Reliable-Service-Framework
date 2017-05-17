@@ -102,7 +102,7 @@ void Broker::step()
 			for(;;) {
 				/* Receiving the value to elaborate */
 	       			router->recv(&message);
-	       			size_t more_size = sizeof (more);
+	       			size_t more_size = sizeof(more);
                 		router->getsockopt(ZMQ_RCVMORE, &more, 
                 			&more_size);
 				
@@ -126,8 +126,7 @@ void Broker::step()
        						(void *) &val_elab, 4);
 	        			std::cout << "Sending "<< val_elab 
 	        				<< std::endl;
-	       	   			router->send(reply,  
-	       	   				more? ZMQ_SNDMORE: 0);
+	       	   			router->send(reply, 0);
 	       	   			break;
 	       	   		}
 	       	   	}
