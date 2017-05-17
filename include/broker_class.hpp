@@ -13,6 +13,8 @@
 #include "types.hpp"
 #include "service.hpp"
 
+#define DEALER_START_PORT 6000
+
 class Broker {
 
 private:
@@ -27,7 +29,7 @@ public:
 	std::vector<zmq::pollitem_t> items;
 	/* Sockets for ZMQ communication */
 	zmq::context_t *context;
-	zmq::socket_t **dealer;
+	std::list<zmq::socket_t*> dealer;
 	zmq::socket_t *reg;
 	zmq::socket_t *router;
 	Broker(uint8_t nmr, uint16_t port_router, uint16_t port_reg);

@@ -16,12 +16,10 @@ int32_t main(int32_t argc, char_t* argv[])
 {	
 	uint8_t service = *argv[0], id = *argv[1];
 	Server *server;
-	std::string server_address("*");
 	std::string broker_address("localhost");
 
 	try {
-		server = new Server(id, service, server_address, 5555,
-				broker_address, 6000);
+		server = new Server(id, service, broker_address, 6000);
 	} catch (std::bad_alloc& ba) {
 		std::cerr << "bad_alloc caught: " << ba.what() <<  std::endl;
 		exit(EXIT_FAILURE);

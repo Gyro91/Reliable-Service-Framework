@@ -2,6 +2,7 @@
 #include "../../include/communication.hpp"
 #include <iostream>
 #include <stdio.h>
+//#include <errno.h>
 
 #define MAX_LENGTH_STRING_PORT 6 /* Max number of char needed for data port */
 
@@ -16,17 +17,15 @@
  * 
  */
 
-Server::Server(uint8_t id_server, uint8_t service_t, std::string server_addr, 
-		uint16_t server_p, std::string broker_addr, uint16_t broker_p) 
+Server::Server(uint8_t id_server, uint8_t service_t, std::string broker_addr, 
+		uint16_t broker_p) 
 {
 	char_t str[MAX_LENGTH_STRING_PORT];
 	std::string port, conf;
 
 	id = id_server;
 	service_type = (service_type_t)service_t;
-	server_port = server_p + id;
 	broker_port = broker_p;
-	server_address = server_addr;
 	broker_address = broker_addr;
 
 	service = get_service_body(service_type);
@@ -41,34 +40,20 @@ Server::Server(uint8_t id_server, uint8_t service_t, std::string server_addr,
 
 	/* Preparing ZMQ Socket to receive messages on */
 	try {
-		receiver = new zmq::socket_t(*context, ZMQ_REP);
+		reply = new zmq::socket_t(*context, ZMQ_REP);
 	} catch (std::bad_alloc& ba) {
 		std::cerr << "bad_alloc caught: " << ba.what() << std::endl;
 		exit(EXIT_FAILURE);
 	}
 
-	memset(str, '\0', MAX_LENGTH_STRING_PORT);
-	sprintf(str, "%d", server_port);
-	port.assign(str);
-	conf = (COM_PROTOCOL + server_address + ":" + port);
-	receiver->bind(conf.c_str());
-
-	std::cout << "Configuration: "<< conf << std::endl;
-
-	/* Preparing ZMQ Socket to send messages */
-	/*try {
-		sender = new zmq::socket_t(*context, ZMQ_PUSH);
-	} catch (std::bad_alloc& ba) {
-		std::cerr << "bad_alloc caught: " << ba.what() << std::endl;
-		exit(EXIT_FAILURE);
-	}
 	memset(str, '\0', MAX_LENGTH_STRING_PORT);
 	sprintf(str, "%d", broker_port);
 	port.assign(str);
 	conf = (COM_PROTOCOL + broker_addr + ":" + port);
-//	sender->connect(conf.c_str());
+	/* In this case the REP socket requires the connect() method! */
+	reply->connect(conf.c_str());
 
-	std::cout << conf << std::endl;*/
+	std::cout << "Configuration: "<< conf << std::endl;
 }
 
 /**
@@ -79,41 +64,67 @@ Server::Server(uint8_t id_server, uint8_t service_t, std::string server_addr,
 Server::~Server()
 {
 	delete context;
-	delete receiver;
-	//delete sender;
+	delete reply;
 }
 
-void Server::wait_request() 
-{	
-
-}
-
-void Server::deliver_service()
-{
-
-}
+/**
+ * @brief Server step function used to perform all the computation.
+ */
 
 void Server::step()
-{	
-	zmq::message_t request;
-	bool ret;   
+{	 
 	int32_t val, val_elab;
+	try {
+		for (;;) {
+			/* Receiving the value to elaborate */
+			receive_request(&val);
 
-	while (true) {
-		/* Receiving the value to elaborate */
-	       	ret = receiver->recv(&request);
-	       	if (ret == true) {
-	       		val = *(static_cast<int32_t*> (request.data()));
-            		std::cout << "Received " << val << std::endl;
-       		}
-       		/* Elaborating */
-       		val_elab = service(val);
-       		sleep(1);
+			/* Elaborating */
+			val_elab = service(val);
+			sleep(1);
 
-       		/* Sending back the result */
-       		zmq::message_t reply(4);
-       		memcpy(reply.data(), (void *) &val_elab, 4);
-        	std::cout << "Sending "<< val_elab << std::endl;
-          	receiver->send(reply);
-        }
+			/* Sending back the result */
+			deliver_service(val_elab);
+		}
+	} catch (std::exception &e) {}
+}
+
+/**
+ * @brief Receive the request message from the broker and returns 
+ * 	  the data contained inside it.
+ * @param val	Reference to return the message data.
+ */
+
+void Server::receive_request(int32_t* val)
+{
+	zmq::message_t msg;
+	bool ret;
+	
+	ret = reply->recv(&msg);
+	if (ret == true) {
+		*val = *(static_cast<int32_t*> (msg.data()));
+		std::cout << "Received " << val << std::endl;
+	} else {
+		exit(EXIT_FAILURE);
+	}
+}
+
+/**
+ * @brief Sends back to the broker the results of the service.
+ * @param val	Service result to be sent.
+ */
+
+void Server::deliver_service(int32_t val)
+{
+	zmq::message_t msg(4);
+	bool ret;
+	
+	memcpy(msg.data(), (void *) &val, 4);
+	std::cout << "Sending " << val << std::endl;
+	
+	ret = reply->send(msg);
+	if (ret == true)
+		std::cout << "Sent " << val << std::endl;
+	else
+		exit(EXIT_FAILURE);
 }

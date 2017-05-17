@@ -21,22 +21,21 @@ private:
 	service_type_t service_type;
 	/* Service to be provided */
 	service_body service;
-	/* Addresses and ports for communication */
-	std::string server_address;
-	uint16_t server_port;
+	/* Address and port for communication */
 	std::string broker_address;
 	uint16_t broker_port;
 	/* Sockets for ZMQ communication */
 	zmq::context_t *context;
-	zmq::socket_t *receiver;
-	zmq::socket_t *sender;
+	zmq::socket_t *reply;
+	
+	/* Receive requests from the broker */
+	void receive_request(int32_t *val);
+	/* Send results to the broker */
+	void deliver_service(int32_t val);
 
 public:
-	Server(uint8_t id, uint8_t service, std::string server_addr, 
-		uint16_t server_port, std::string broker_addr, 
+	Server(uint8_t id, uint8_t service, std::string broker_addr, 
 		uint16_t broker_port);
-	void wait_request();
-	void deliver_service();
 	void step();
 	~Server();
 };
