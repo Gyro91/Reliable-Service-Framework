@@ -8,14 +8,6 @@
 #include "../../include/broker_class.hpp"
 #include "../../include/communication.hpp"
 
-void set_pollitem(zmq::pollitem_t *p_item, zmq::socket_t *skt)
-{
-	p_item->socket = static_cast<void*> (skt);
-	p_item->fd = 0;
-	p_item->events = ZMQ_POLLIN;
-	p_item->revents = 0;
-}
-
 /**
  * @brief Broker constructor that initializes alle the private data and
  * 	  claims memory for ZPQ sockets. Then it connects to the socket.
