@@ -88,7 +88,7 @@ Broker::~Broker()
 }
 
 void Broker::step()
-{	
+{
 	int32_t val, more, val_elab = 0;
 
 
@@ -101,37 +101,35 @@ void Broker::step()
 
 			for(;;) {
 				/* Receiving the value to elaborate */
-	       			router->recv(&message);
-	       			size_t more_size = sizeof (more);
-                		router->getsockopt(ZMQ_RCVMORE, &more, 
-                			&more_size);
+				router->recv(&message);
+				size_t more_size = sizeof (more);
+				router->getsockopt(ZMQ_RCVMORE, &more, 
+					&more_size);
 				
 				if (more == 1) {
-					router->send(message, ZMQ_SNDMORE);	
+					router->send(message, ZMQ_SNDMORE);
 				}
-       				//sleep(1);
+				//sleep(1);
 
-       				
-	       	   		if (!more) {
-	       	   			val = *(static_cast<int32_t*> 
-	       	   				(message.data()));
-	            			std::cout << "Received " 
-	            				<< val << std::endl;
-	       		
-       					/* Elaborating */
-       					val_elab = ++val;
-	       	   			/* Sending back the result */
-       					zmq::message_t reply(4);
-       					memcpy(reply.data(), 
-       						(void *) &val_elab, 4);
-	        			std::cout << "Sending "<< val_elab 
-	        				<< std::endl;
-	       	   			router->send(reply,  
-	       	   				more? ZMQ_SNDMORE: 0);
-	       	   			break;
-	       	   		}
-	       	   	}
+				if (!more) {
+					val = *(static_cast<int32_t*> 
+						(message.data()));
+					std::cout << "Received " 
+						<< val << std::endl;
+			
+					/* Elaborating */
+					val_elab = ++val;
+					/* Sending back the result */
+					zmq::message_t reply(4);
+					memcpy(reply.data(), 
+						(void *) &val_elab, 4);
+					std::cout << "Sending "<< val_elab 
+						<< std::endl;
+					router->send(reply,  
+						more? ZMQ_SNDMORE: 0);
+					break;
+				}
+			}
 		}
-
 	}
 }

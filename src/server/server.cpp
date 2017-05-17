@@ -27,7 +27,7 @@ int32_t main(int32_t argc, char_t* argv[])
 		exit(EXIT_FAILURE);
 	}
 	
-	server->step();				
+	server->step();	
 	
 	delete server;
 
