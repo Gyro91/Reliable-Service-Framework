@@ -33,3 +33,13 @@
 
 .*
 /Debug/
+
+# Codelite files
+*.project
+*.workspace
+
+# Specific binaries
+broker
+client
+depl_unit
+server
