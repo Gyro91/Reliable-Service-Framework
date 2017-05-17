@@ -8,6 +8,7 @@
 
 #define COM_PROTOCOL "tcp://"
 #define ANY_ADDRESS "*"
+#define REG_PORT_BROKER 8000
 
 #define MAX_LENGTH_STRING_PORT 6
 

@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include "../../include/types.hpp"
-
+#include "../../include/service.hpp"
 
 
 /**
@@ -21,8 +21,8 @@
  * @retval None
  */
 
-void get_arg(int32_t argc, char_t *argv[], char_t &num_cp_server,
-		char_t &service, char_t num_options)
+void get_arg(int32_t argc, char_t *argv[], uint8_t &num_cp_server,
+		service_type_t &service, char_t num_options)
 {
 	char_t c;
 	uint8_t cnt_options = 0;
@@ -40,7 +40,7 @@ void get_arg(int32_t argc, char_t *argv[], char_t &num_cp_server,
 			num_cp_server = atoi(optarg);
 			break;
 		case 's':
-			service = atoi(optarg);
+			service = static_cast<service_type_t>(atoi(optarg));
 			break;
 		case '?':
 			if (optopt == 't')
