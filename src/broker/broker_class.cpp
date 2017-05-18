@@ -22,6 +22,7 @@ Broker::Broker(uint8_t nmr, uint16_t port_router, uint16_t port_reg)
 	std::string conf;
 	std::string protocol(COM_PROTOCOL);
 	char_t str[MAX_LENGTH_STRING_PORT];
+	int32_t opt;
 
 	this->nmr = nmr;
 	this->port_router = port_router;
@@ -42,6 +43,11 @@ Broker::Broker(uint8_t nmr, uint16_t port_router, uint16_t port_reg)
 		std::cerr << "bad_alloc caught: " << ba.what() << std::endl;
 		exit(EXIT_FAILURE);
 	}
+	/* This option is used to enable error messages when an invalid
+	 * identity is used to send a message with a ROUTER socket
+	 */
+	opt = 1;
+	router->setsockopt(ZMQ_ROUTER_MANDATORY, &opt, sizeof(int32_t));
 	memset(str, '\0', MAX_LENGTH_STRING_PORT);
 	sprintf(str, "%d", port_router);
 	conf = (protocol + "*" + ":" + str);
