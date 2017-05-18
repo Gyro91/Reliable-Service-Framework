@@ -7,6 +7,7 @@
 #define INCLUDE_COMMUNICATION_HPP_
 
 #define COM_PROTOCOL "tcp://"
+#define LOCALHOST "localhost"
 #define ANY_ADDRESS "*"
 #define REG_PORT_BROKER 8000
 

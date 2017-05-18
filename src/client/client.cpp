@@ -12,13 +12,12 @@
 
 int32_t main(int32_t argc, char_t* argv[])
 {	
-        int32_t result;
-        zmq::context_t context(1);
-    	zmq::socket_t socket(context, ZMQ_REQ);
+    	int32_t result;
+   	zmq::context_t context(1);
+   	zmq::socket_t socket(context, ZMQ_REQ);
 
    	std::cout << "Connecting to the server…" << std::endl;
 	socket.connect("tcp://localhost:5559");
-
 
 	for (int32_t i = 0; i < 10; i++) {
 

@@ -6,7 +6,6 @@
  *
  */
 
-
 #include <iostream>
 #include "../../include/check_util.hpp"
 #include "../../include/communication.hpp"
@@ -29,8 +28,7 @@ int32_t main(int32_t argc, char_t* argv[])
 	}
 
 	try {
-		deployment_unit = new DeploymentUnit(num_copy_server, service,
-			REG_PORT_BROKER);
+		deployment_unit = new DeploymentUnit(LOCALHOST, num_copy_server, service, REG_PORT_BROKER);
 	} catch (std::bad_alloc& ba) {
 		std::cerr << "bad_alloc caught: " << ba.what() << std::endl;
 		exit(EXIT_FAILURE);

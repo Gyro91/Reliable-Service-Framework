@@ -7,6 +7,7 @@
 #define INCLUDE_DEPLOYMENT_UNIT_CLASS_HPP_
 
 #include <zmq.hpp>
+#include <string>
 #include "types.hpp"
 #include "service.hpp"
 
@@ -17,6 +18,8 @@ private:
 	uint8_t num_copy_server;
 	/* Type of server service */
 	service_type_t service;
+	/* Broker Address */
+	std::string broker_address;
 	/* Broker Port for communication between broker and servers */
 	uint16_t dealer_port;
 	/* Broker Port for registering server copies */
@@ -28,8 +31,7 @@ public:
 	zmq::context_t *context;
 	zmq::socket_t *reg;
 
-	DeploymentUnit(uint8_t num_copy_server, service_type_t service, 
-		uint16_t reg_port);
+	DeploymentUnit(std::string broker_address, uint8_t num_copy_server, service_type_t service, uint16_t reg_port);
 	void deployment();
 	~DeploymentUnit();
 };
