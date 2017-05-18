@@ -3,7 +3,7 @@ CFLAGS = -Wall -std=c++11 -g
 LDFLAGS = -L/usr/local/lib -lzmq 
 
 EXEC_1 = depl_unit #adding here the name of the program
-SOURCES_1 = $(wildcard src/deployment_unit/*.cpp)
+SOURCES_1 = $(wildcard src/deployment_unit/*.cpp) $(wildcard src/framework/*.cpp)
 PATH_1 = src/deployment_unit/
 OBJECTS_1 = $(SOURCES_1:.cpp=.o)
 

@@ -103,7 +103,7 @@ void Server::receive_request(int32_t* val)
 	ret = reply->recv(&msg);
 	if (ret == true) {
 		*val = *(static_cast<int32_t*> (msg.data()));
-		std::cout << "Received " << val << std::endl;
+		std::cout << "Received " << *val << std::endl;
 	} else {
 		exit(EXIT_FAILURE);
 	}

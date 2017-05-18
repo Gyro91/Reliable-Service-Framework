@@ -119,7 +119,6 @@ void Broker::step()
 				router->getsockopt(ZMQ_RCVMORE, &more, 
 					&more_size);
 				dealer_test->send(message, more? ZMQ_SNDMORE: 0);
-				//sleep(1);
 
 				if (!more) {
 					break;

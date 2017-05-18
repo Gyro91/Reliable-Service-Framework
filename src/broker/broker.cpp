@@ -8,12 +8,13 @@
 #include <iostream>
 #include "../../include/types.hpp"
 #include "../../include/broker_class.hpp"
+#include "../../include/communication.hpp"
 #include <zmq.hpp>
 
 
 int32_t main(int32_t argc, char_t* argv[])
 {	
-	Broker broker(3, 5559, 6555);
+	Broker broker(3, ROUTER_PORT_BROKER, REG_PORT_BROKER);
 
 	broker.step();
 
