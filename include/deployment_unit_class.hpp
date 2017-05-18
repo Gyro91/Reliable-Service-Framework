@@ -31,7 +31,8 @@ public:
 	zmq::context_t *context;
 	zmq::socket_t *reg;
 
-	DeploymentUnit(std::string broker_address, uint8_t num_copy_server, service_type_t service, uint16_t reg_port);
+	DeploymentUnit(std::string broker_address, uint8_t num_copy_server, 
+				service_type_t service, uint16_t reg_port);
 	void deployment();
 	~DeploymentUnit();
 };

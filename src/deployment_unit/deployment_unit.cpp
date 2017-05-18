@@ -7,7 +7,7 @@
  */
 
 #include <iostream>
-#include "../../include/check_util.hpp"
+#include "../../include/util.hpp"
 #include "../../include/communication.hpp"
 #include "../../include/deployment_unit_class.hpp"
 #define NUM_OPTIONS 2
@@ -28,7 +28,8 @@ int32_t main(int32_t argc, char_t* argv[])
 	}
 
 	try {
-		deployment_unit = new DeploymentUnit(LOCALHOST, num_copy_server, service, REG_PORT_BROKER);
+		deployment_unit = new DeploymentUnit(LOCALHOST, num_copy_server,
+			service, REG_PORT_BROKER);
 	} catch (std::bad_alloc& ba) {
 		std::cerr << "bad_alloc caught: " << ba.what() << std::endl;
 		exit(EXIT_FAILURE);

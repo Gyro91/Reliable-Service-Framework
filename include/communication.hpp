@@ -10,6 +10,8 @@
 #define LOCALHOST "localhost"
 #define ANY_ADDRESS "*"
 #define REG_PORT_BROKER 8000
+#define BIND 0
+#define CONNECT 1
 
 #define MAX_LENGTH_STRING_PORT 6
 

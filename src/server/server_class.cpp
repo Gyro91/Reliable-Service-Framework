@@ -1,8 +1,12 @@
-#include "../../include/server_class.hpp"
-#include "../../include/communication.hpp"
+/**
+ *	server_class.cpp
+ * 
+ */
 #include <iostream>
 #include <stdio.h>
-//#include <errno.h>
+#include "../../include/server_class.hpp"
+#include "../../include/communication.hpp"
+#include "../../include/util.hpp"
 
 #define MAX_LENGTH_STRING_PORT 6 /* Max number of char needed for data port */
 
@@ -20,7 +24,7 @@
 Server::Server(uint8_t id_server, uint8_t service_t, std::string broker_addr, 
 		uint16_t broker_p) 
 {
-	char_t str[MAX_LENGTH_STRING_PORT];
+	
 	std::string port, conf;
 
 	id = id_server;
@@ -37,21 +41,9 @@ Server::Server(uint8_t id_server, uint8_t service_t, std::string broker_addr,
 		std::cerr << "bad_alloc caught: " << ba.what() << std::endl;
 		exit(EXIT_FAILURE);
 	}
-
-	/* Preparing ZMQ Socket to receive messages on */
-	try {
-		reply = new zmq::socket_t(*context, ZMQ_REP);
-	} catch (std::bad_alloc& ba) {
-		std::cerr << "bad_alloc caught: " << ba.what() << std::endl;
-		exit(EXIT_FAILURE);
-	}
-
-	memset(str, '\0', MAX_LENGTH_STRING_PORT);
-	sprintf(str, "%d", broker_port);
-	port.assign(str);
-	conf = (COM_PROTOCOL + broker_addr + ":" + port);
+	
 	/* In this case the REP socket requires the connect() method! */
-	reply->connect(conf.c_str());
+	reply = add_socket(context, broker_addr, broker_p, ZMQ_REP, CONNECT);
 
 	std::cout << "Configuration: "<< conf << std::endl;
 }

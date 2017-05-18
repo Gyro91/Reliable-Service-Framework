@@ -22,19 +22,23 @@ SOURCES_4 = $(wildcard src/client/*.cpp)
 PATH_4 = src/client/
 OBJECTS_4 = $(SOURCES_4:.cpp=.o)
 
+SOURCES_U = $(wildcard src/utilities/*.cpp)
+PATH_U = src/utilities/
+OBJECTS_U = $(SOURCES_U:.cpp=.o)
+
 all: $(EXEC_1) $(EXEC_2) $(EXEC_3) $(EXEC_4) 
 
-$(EXEC_1): $(OBJECTS_1) 
-	$(CC) $(OBJECTS_1) -o $(EXEC_1) $(LDFLAGS) 
+$(EXEC_1): $(OBJECTS_1) $(OBJECTS_U)
+	$(CC) $(OBJECTS_1) $(OBJECTS_U) -o $(EXEC_1) $(LDFLAGS) 
 
-$(EXEC_2): $(OBJECTS_2)
-	$(CC) $(OBJECTS_2) -o $(EXEC_2) $(LDFLAGS) 
+$(EXEC_2): $(OBJECTS_2) $(OBJECTS_U)
+	$(CC) $(OBJECTS_2) $(OBJECTS_U) -o $(EXEC_2) $(LDFLAGS) 
 
-$(EXEC_3): $(OBJECTS_3) 
-	$(CC) $(OBJECTS_3) -o $(EXEC_3) $(LDFLAGS) 
+$(EXEC_3): $(OBJECTS_3) $(OBJECTS_U)
+	$(CC) $(OBJECTS_3) $(OBJECTS_U) -o $(EXEC_3) $(LDFLAGS) 
 
-$(EXEC_4): $(OBJECTS_4)
-	$(CC) $(OBJECTS_4) -o $(EXEC_4) $(LDFLAGS) 
+$(EXEC_4): $(OBJECTS_4) $(OBJECTS_U)
+	$(CC) $(OBJECTS_4) $(OBJECTS_U) -o $(EXEC_4) $(LDFLAGS) 
 		
 $(PATH_1)%.o: $(PATH_1)%.cpp 
 	$(CC) -c $(CFLAGS) $< -o $@
@@ -48,20 +52,25 @@ $(PATH_3)%.o: $(PATH_3)%.cpp
 $(PATH_4)%.o: $(PATH_4)%.cpp 
 	$(CC) -c $(CFLAGS) $< -o $@
 	
+$(PATH_U)%.o: $(PATH_U)%.cpp 
+	$(CC) -c $(CFLAGS) $< -o $@
+
+	
 clean:
 	rm -rf $(EXEC_1) $(OBJECTS_1)
 	rm -rf $(EXEC_2) $(OBJECTS_2)
 	rm -rf $(EXEC_3) $(OBJECTS_3)
 	rm -rf $(EXEC_4) $(OBJECTS_4)
+	rm -rf $(OBJECTS_U)
 
 clean_$(EXEC_1):
-	rm -rf $(EXEC_1) $(OBJECTS_1)
+	rm -rf $(EXEC_1) $(OBJECTS_1) $(OBJECTS_U)
 	
 clean_$(EXEC_2):
-	rm -rf $(EXEC_3) $(OBJECTS_3)
+	rm -rf $(EXEC_3) $(OBJECTS_3) $(OBJECTS_U)
 
 clean_$(EXEC_3):
-	rm -rf $(EXEC_3) $(OBJECTS_3)
+	rm -rf $(EXEC_3) $(OBJECTS_3) $(OBJECTS_U)
 
 clean_$(EXEC_4):
-	rm -rf $(EXEC_4) $(OBJECTS_4)
+	rm -rf $(EXEC_4) $(OBJECTS_4) $(OBJECTS_U)

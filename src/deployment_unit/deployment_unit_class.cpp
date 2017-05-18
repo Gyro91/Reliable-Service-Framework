@@ -9,6 +9,7 @@
 #include <new>
 #include "../../include/deployment_unit_class.hpp"
 #include "../../include/communication.hpp"
+#include "../../include/util.hpp"
 
 /**
  * @brief DeploymentUnit constructor that initializes all the private data 
@@ -18,7 +19,8 @@
  * 
  */
 
-DeploymentUnit::DeploymentUnit(std::string broker_address, uint8_t num_copy_server, service_type_t service, uint16_t reg_port)
+DeploymentUnit::DeploymentUnit(std::string broker_address, 
+	uint8_t num_copy_server, service_type_t service, uint16_t reg_port)
 {	
 	std::string conf;
 	std::string protocol(COM_PROTOCOL);
@@ -45,19 +47,8 @@ DeploymentUnit::DeploymentUnit(std::string broker_address, uint8_t num_copy_serv
 		exit(EXIT_FAILURE);
 	}
 
-	/* Preparing ZMQ Socket to register the service */
-	try {
-		reg = new zmq::socket_t(*context, ZMQ_REQ);
-	} catch (std::bad_alloc& ba) {
-		std::cerr << "bad_alloc caught: " << ba.what() << std::endl;
-		exit(EXIT_FAILURE);
-	}
-
-	memset(str, '\0', MAX_LENGTH_STRING_PORT);
-	sprintf(str, "%d", reg_port);
-	conf = (protocol + broker_address + ":" + str);
-	reg->connect(conf.c_str());
-	std::cout << conf << std::endl;
+	/* Create the ZMQ Socket to register the service */
+	reg = add_socket(context, broker_address, reg_port, ZMQ_REQ, CONNECT);
 
 }
 

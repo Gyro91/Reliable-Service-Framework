@@ -7,8 +7,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>
+#include <zmq.hpp>
+#include <iostream>
 #include "../../include/types.hpp"
 #include "../../include/service.hpp"
+#include "../../include/communication.hpp"
+//#include "../../include/util.hpp"
 
 
 /**
@@ -18,7 +22,7 @@
  * @param num_cp_server Where to store the number of copies of a server
  * @param service Where to store the number of service to be deployed
  * @param num_options Number of options expected
- * @retval None
+ * @return None
  */
 
 void get_arg(int32_t argc, char_t *argv[], uint8_t &num_cp_server,
@@ -67,4 +71,41 @@ void get_arg(int32_t argc, char_t *argv[], uint8_t &num_cp_server,
 		exit(EXIT_FAILURE);
 	}
 
+}
+
+/**
+ * @brief 
+ * @param addr
+ * @param port
+ * @param type
+ * @return 
+ */
+
+zmq::socket_t* add_socket(zmq::context_t * ctx, std::string addr, uint16_t port, 
+					int32_t skt_type, uint8_t dir)
+{
+	zmq::socket_t *skt;
+	std::string p, conf;
+	char_t str[MAX_LENGTH_STRING_PORT];
+	
+	/* Create the ZMQ socket */
+	try {
+		skt = new zmq::socket_t(*ctx, skt_type);
+	} catch (std::bad_alloc& ba) {
+		std::cerr << "bad_alloc caught: " << ba.what() << std::endl;
+		exit(EXIT_FAILURE);
+		return NULL;
+	}
+
+	memset(str, '\0', MAX_LENGTH_STRING_PORT);
+	sprintf(str, "%d", port);
+	p.assign(str);
+	conf = (COM_PROTOCOL + addr + ":" + p);
+	
+	if (dir == BIND)
+		skt->bind(conf.c_str());
+	else
+		skt->connect(conf.c_str());
+	
+	return skt; 
 }
