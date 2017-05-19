@@ -36,7 +36,7 @@ Broker::Broker(uint8_t nmr, uint16_t port_router, uint16_t port_reg)
 
 	/* Router socket creation */
 	router = add_socket(context, ANY_ADDRESS, port_router, ZMQ_ROUTER, 
-				BIND);
+		BIND);
 	/* This option is used to enable error messages when an invalid
 	 * identity is used to send a message with a ROUTER socket
 	 */
@@ -44,15 +44,12 @@ Broker::Broker(uint8_t nmr, uint16_t port_router, uint16_t port_reg)
 	router->setsockopt(ZMQ_ROUTER_MANDATORY, &opt, sizeof(int32_t));
 	
 	/* Registration socket creation */
-	reg = add_socket(context, ANY_ADDRESS, port_reg, ZMQ_REP, 
-				BIND);
+	reg = add_socket(context, ANY_ADDRESS, port_reg, ZMQ_ROUTER, BIND);
 
 	/* Dealer socket creation (TEST) */
-	dealer.push_back(add_socket(context, ANY_ADDRESS, DEALER_START_PORT, ZMQ_DEALER, 
-				BIND));
+	dealer.push_back(add_socket(context, ANY_ADDRESS, DEALER_START_PORT, ZMQ_DEALER, BIND));
 
 	/* Initialize the poll set */
-	nitems = 3;
 	zmq::pollitem_t tmp = {static_cast<void*>(*router), 0, ZMQ_POLLIN, 0};
 	items.push_back(tmp);
 	tmp = {static_cast<void*>(*reg), 0, ZMQ_POLLIN, 0};
@@ -74,7 +71,7 @@ Broker::~Broker()
 void Broker::step()
 {
 	int32_t more;
-	
+
 	/* Temporary pointer to the first element in the dealer list */
 	zmq::socket_t *dealer_test = dealer.front();
 
@@ -82,7 +79,7 @@ void Broker::step()
 		zmq::message_t message;
 
 		zmq::poll(items, -1);
-
+		std::cout << "Waking up" << std::endl;
 		/* Check for messages on the router socket */
 		if (items[0].revents & ZMQ_POLLIN) {
 			for(;;) {
@@ -92,14 +89,43 @@ void Broker::step()
 				router->getsockopt(ZMQ_RCVMORE, &more, 
 					&more_size);
 				dealer_test->send(message, more? ZMQ_SNDMORE: 0);
-				//sleep(1);
 
-				if (!more) {
+				if (!more)
 					break;
-				}
 			}
 		}
-		
+		/* Check for a registration request */
+		if (items[1].revents & ZMQ_POLLIN) {
+
+			for(;;) {
+				/* Receiving the value to elaborate */
+				std::cout << "Receiving registration" << std::endl;
+	       			reg->recv(&message);
+	       			size_t more_size = sizeof(more);
+                		reg->getsockopt(ZMQ_RCVMORE, &more, 
+                			&more_size);
+				
+				if (more == 1) 
+					reg->send(message, ZMQ_SNDMORE);
+	       	   		if (!more) {
+	       	   			int32_t val = *(static_cast<int32_t*> 
+	       	   				(message.data()));
+	            			std::cout << "Received " 
+	            				<< val << std::endl;
+	       		
+       					/* Elaborating */
+       					val = val + 1;
+	       	   			/* Sending back the result */
+       					zmq::message_t reply(4);
+       					memcpy(reply.data(), 
+       						(void *) &val, 4);
+	        			std::cout << "Sending "<< val 
+	        				<< std::endl;
+	       	   			reg->send(reply, 0);
+	       	   			break;
+	       	   		}
+			}
+		}
 		/* Check for messages on the dealer socket */
 		if (items[2].revents & ZMQ_POLLIN) {
 			for(;;) {
@@ -109,11 +135,9 @@ void Broker::step()
 				dealer_test->getsockopt(ZMQ_RCVMORE, &more, 
 					&more_size);
 				router->send(message, more? ZMQ_SNDMORE: 0);
-				//sleep(1);
 
-				if (!more) {
+				if (!more) 
 					break;
-				}
 			}
 		}
 	}

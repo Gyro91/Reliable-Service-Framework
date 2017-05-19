@@ -6,8 +6,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/wait.h>
-#include <new>
 #include "../../include/deployment_unit_class.hpp"
+#include "../../include/rs_api.hpp"
 #include "../../include/communication.hpp"
 #include "../../include/util.hpp"
 
@@ -45,6 +45,7 @@ DeploymentUnit::DeploymentUnit(std::string broker_address,
 
 	/* Create the ZMQ Socket to register the service */
 	reg = add_socket(context, broker_address, reg_port, ZMQ_REQ, CONNECT);
+
 }
 
 /**
@@ -61,6 +62,20 @@ DeploymentUnit::~DeploymentUnit()
 }
 
 /**
+ * @brief This function registers the server copies
+ * 
+ */
+
+void DeploymentUnit::registration()
+{
+	registration_module rm;
+
+	rm.service = service;
+
+	register_service(&rm, reg);
+}
+
+/**
  * @brief This function deploys the server copies
  * 
  */
@@ -71,13 +86,12 @@ void DeploymentUnit::deployment()
 	uint8_t i = 0;
 	int32_t status = 0;
 
+	/* Server copies deployment */
 	for (;;) {
 		if (i == num_copy_server) {
 			std::cout << "#Deployment_Unit: "
 					"Server copies deployed"
-						<< std::endl;
-			/* Registration phase */
-						
+						<< std::endl;	
 			/* Wait on the children */
 			wait(&status);
 			std::cerr << "Wake up!Something happened to "

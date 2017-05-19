@@ -34,7 +34,8 @@ int32_t main(int32_t argc, char_t* argv[])
 		std::cerr << "bad_alloc caught: " << ba.what() << std::endl;
 		exit(EXIT_FAILURE);
 	}
-
+	/* Registering Server */
+	deployment_unit->registration();
 	/* Spawning server copies */
 	std::cout << "#Deployment_Unit: Spawning server copies"
 			<< std::endl;
