@@ -24,9 +24,6 @@
 Server::Server(uint8_t id_server, uint8_t service_t, std::string broker_addr, 
 		uint16_t broker_p) 
 {
-	
-	std::string port, conf;
-
 	id = id_server;
 	service_type = (service_type_t)service_t;
 	broker_port = broker_p;
@@ -44,8 +41,6 @@ Server::Server(uint8_t id_server, uint8_t service_t, std::string broker_addr,
 	
 	/* In this case the REP socket requires the connect() method! */
 	reply = add_socket(context, broker_addr, broker_p, ZMQ_REP, CONNECT);
-
-	std::cout << "Configuration: "<< conf << std::endl;
 }
 
 /**

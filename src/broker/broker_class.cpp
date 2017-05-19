@@ -20,8 +20,6 @@
 
 Broker::Broker(uint8_t nmr, uint16_t port_router, uint16_t port_reg) 
 {	
-	std::string conf;
-	char_t str[MAX_LENGTH_STRING_PORT];
 	int32_t opt;
 
 	this->nmr = nmr;
@@ -37,17 +35,6 @@ Broker::Broker(uint8_t nmr, uint16_t port_router, uint16_t port_reg)
 	}
 
 	/* Router socket creation */
-//	try {
-//		router = new zmq::socket_t(*context, ZMQ_ROUTER);
-//	} catch (std::bad_alloc& ba) {
-//		std::cerr << "bad_alloc caught: " << ba.what() << std::endl;
-//		exit(EXIT_FAILURE);
-//	}
-//	memset(str, '\0', MAX_LENGTH_STRING_PORT);
-//	sprintf(str, "%d", port_router);
-//	conf = (protocol + "*" + ":" + str);
-//	router->bind(conf.c_str());
-	
 	router = add_socket(context, ANY_ADDRESS, port_router, ZMQ_ROUTER, 
 				BIND);
 	/* This option is used to enable error messages when an invalid
@@ -56,35 +43,11 @@ Broker::Broker(uint8_t nmr, uint16_t port_router, uint16_t port_reg)
 	opt = 1;
 	router->setsockopt(ZMQ_ROUTER_MANDATORY, &opt, sizeof(int32_t));
 	
-	std::cout << conf << std::endl;
-	
 	/* Registration socket creation */
-//	try {
-//		reg = new zmq::socket_t(*context, ZMQ_REP);
-//	} catch (std::bad_alloc& ba) {
-//		std::cerr << "bad_alloc caught: " << ba.what() << std::endl;
-//		exit(EXIT_FAILURE);
-//	}
-//	memset(str, '\0', MAX_LENGTH_STRING_PORT);
-//	sprintf(str, "%d", port_reg);
-//	conf = (COM_PROTOCOL + ANY_ADDRESS + ":" + str);
-//	router->bind(conf.c_str());
-	
 	reg = add_socket(context, ANY_ADDRESS, port_reg, ZMQ_REP, 
 				BIND);
 
 	/* Dealer socket creation (TEST) */
-//	try {
-//		dealer.push_back(new zmq::socket_t(*context, ZMQ_DEALER));
-//	} catch (std::bad_alloc& ba) {
-//		std::cerr << "bad_alloc caught: " << ba.what() << std::endl;
-//		exit(EXIT_FAILURE);
-//	}
-//	memset(str, '\0', MAX_LENGTH_STRING_PORT);
-//	sprintf(str, "%d", DEALER_START_PORT);
-//	conf = (COM_PROTOCOL + ANY_ADDRESS + ":" + str);
-//	dealer.front()->bind(conf.c_str());
-	
 	dealer.push_back(add_socket(context, ANY_ADDRESS, DEALER_START_PORT, ZMQ_DEALER, 
 				BIND));
 

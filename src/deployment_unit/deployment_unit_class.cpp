@@ -21,11 +21,7 @@
 
 DeploymentUnit::DeploymentUnit(std::string broker_address, 
 	uint8_t num_copy_server, service_type_t service, uint16_t reg_port)
-{	
-	std::string conf;
-	std::string protocol(COM_PROTOCOL);
-	char_t str[MAX_LENGTH_STRING_PORT];
-	
+{
 	this->broker_address = broker_address;
 	this->num_copy_server = num_copy_server;
 	this->service = service;
@@ -49,7 +45,6 @@ DeploymentUnit::DeploymentUnit(std::string broker_address,
 
 	/* Create the ZMQ Socket to register the service */
 	reg = add_socket(context, broker_address, reg_port, ZMQ_REQ, CONNECT);
-
 }
 
 /**

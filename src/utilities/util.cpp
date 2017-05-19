@@ -94,7 +94,6 @@ zmq::socket_t* add_socket(zmq::context_t * ctx, std::string addr, uint16_t port,
 	} catch (std::bad_alloc& ba) {
 		std::cerr << "bad_alloc caught: " << ba.what() << std::endl;
 		exit(EXIT_FAILURE);
-		return NULL;
 	}
 
 	memset(str, '\0', MAX_LENGTH_STRING_PORT);
@@ -106,6 +105,8 @@ zmq::socket_t* add_socket(zmq::context_t * ctx, std::string addr, uint16_t port,
 		skt->bind(conf.c_str());
 	else
 		skt->connect(conf.c_str());
+	
+	std::cout << "Configuration: "<< conf << std::endl;
 	
 	return skt; 
 }
