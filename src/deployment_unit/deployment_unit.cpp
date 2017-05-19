@@ -35,7 +35,7 @@ int32_t main(int32_t argc, char_t* argv[])
 		exit(EXIT_FAILURE);
 	}
 	/* Registering Server */
-	deployment_unit->registration();
+	//deployment_unit->registration();
 	/* Spawning server copies */
 	std::cout << "#Deployment_Unit: Spawning server copies"
 			<< std::endl;

@@ -83,12 +83,16 @@ void Broker::step()
 		/* Check for messages on the router socket */
 		if (items[0].revents & ZMQ_POLLIN) {
 			for(;;) {
+				
 				/* Receiving the value to elaborate */
 				router->recv(&message);
 				size_t more_size = sizeof (more);
 				router->getsockopt(ZMQ_RCVMORE, &more, 
 					&more_size);
-				dealer_test->send(message, more? ZMQ_SNDMORE: 0);
+				for (uint8_t i = 0; i < 3; i++) {
+					zmq::message_t tmp(message.data(), message.size(), NULL);
+					dealer_test->send(tmp, more? ZMQ_SNDMORE: 0);
+				}
 
 				if (!more)
 					break;
