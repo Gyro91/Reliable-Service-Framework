@@ -7,12 +7,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>
-#include <zmq.hpp>
-#include <iostream>
-#include "../../include/types.hpp"
-#include "../../include/service.hpp"
 #include "../../include/communication.hpp"
-//#include "../../include/util.hpp"
+#include "../../include/util.hpp"
 
 
 /**
@@ -109,4 +105,21 @@ zmq::socket_t* add_socket(zmq::context_t * ctx, std::string addr, uint16_t port,
 	std::cout << "Configuration: "<< conf << std::endl;
 	
 	return skt; 
+}
+
+void send_multi_msg(zmq::socket_t* skt, std::vector<zmq::message_t> msg)
+{
+	uint8_t i;
+	for (i = 0; i < msg.size() - 1; i++)
+		skt->send(msg[i], ZMQ_SNDMORE);
+
+	/* Last message in the sequence */	
+	skt->send(msg[++i], 0);
+}
+
+void push_msg(std::vector<zmq::message_t> vect, zmq::message_t msg)
+{
+	zmq::message_t tmp;
+	
+	
 }

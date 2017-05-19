@@ -90,7 +90,8 @@ void Server::receive_request(int32_t* val)
 	ret = reply->recv(&msg);
 	if (ret == true) {
 		*val = *(static_cast<int32_t*> (msg.data()));
-		std::cout << "Received " << *val << std::endl;
+		std::cout << "Server " << (int32_t)id << " received: " <<
+			*val << std::endl;
 	} else {
 		exit(EXIT_FAILURE);
 	}
@@ -107,11 +108,10 @@ void Server::deliver_service(int32_t val)
 	bool ret;
 	
 	memcpy(msg.data(), (void *) &val, 4);
-	std::cout << "Sending " << val << std::endl;
-	
 	ret = reply->send(msg);
 	if (ret == true)
-		std::cout << "Sent " << val << std::endl;
+		std::cout << "Server " << (int32_t)id << " sent: " << val <<
+			std::endl;
 	else
 		exit(EXIT_FAILURE);
 }

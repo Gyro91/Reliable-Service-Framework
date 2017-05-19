@@ -24,7 +24,7 @@ int32_t main(int32_t argc, char_t* argv[])
 		std::cerr << "bad_alloc caught: " << ba.what() <<  std::endl;
 		exit(EXIT_FAILURE);
 	}
-	
+
 	server->step();	
 	
 	delete server;

@@ -71,32 +71,32 @@ Broker::~Broker()
 void Broker::step()
 {
 	int32_t more;
+	uint8_t num_replies = 0;
+	int32_t serv_values[3];
+	uint8_t ret;
+	std::vector<zmq::message_t> router_in(3);
+	std::vector<zmq::message_t> dealer_in(3);
 
 	/* Temporary pointer to the first element in the dealer list */
 	zmq::socket_t *dealer_test = dealer.front();
 
 	for (;;) {
-		zmq::message_t message;
+		zmq::message_t route_id, empty, data, tmp, message;
 
 		zmq::poll(items, -1);
 		std::cout << "Waking up" << std::endl;
-		/* Check for messages on the router socket */
+		/* Check for messages on the ROUTER socket */
 		if (items[0].revents & ZMQ_POLLIN) {
-			for(;;) {
-				
-				/* Receiving the value to elaborate */
-				router->recv(&message);
-				size_t more_size = sizeof (more);
-				router->getsockopt(ZMQ_RCVMORE, &more, 
-					&more_size);
-				for (uint8_t i = 0; i < 3; i++) {
-					zmq::message_t tmp(message.data(), message.size(), NULL);
-					dealer_test->send(tmp, more? ZMQ_SNDMORE: 0);
+				/* Receive multiple messages,
+				 * one frame at a time */
+				for (uint8_t i = 0; i < ENVELOPE; i++) {
+					router->recv(&tmp);
+//					router_in.push_back(tmp);
 				}
 
-				if (!more)
-					break;
-			}
+				/* Send the data */
+//				for (uint8_t i = 0; i < 3; i++)
+//					send_multi_msg(dealer_test, router_in);
 		}
 		/* Check for a registration request */
 		if (items[1].revents & ZMQ_POLLIN) {
@@ -130,19 +130,49 @@ void Broker::step()
 	       	   		}
 			}
 		}
-		/* Check for messages on the dealer socket */
+		/* Check for messages on the DEALER socket */
 		if (items[2].revents & ZMQ_POLLIN) {
-			for(;;) {
-				/* Receiving the value to elaborate */
-				dealer_test->recv(&message);
-				size_t more_size = sizeof (more);
-				dealer_test->getsockopt(ZMQ_RCVMORE, &more, 
-					&more_size);
-				router->send(message, more? ZMQ_SNDMORE: 0);
-
-				if (!more) 
-					break;
+			/* Receiving all the messages */
+			for (uint8_t i = 0; i < ENVELOPE; i++) {
+				dealer_test->recv(&tmp);
+//				dealer_in.push_back(tmp);
+			}
+			
+			serv_values[num_replies] = (*(static_cast<int32_t*>
+				(dealer_in[DATA_FRAME].data())));
+			num_replies++;
+//			std::cout << (int32_t)num_replies << std::endl;
+		}
+		if (num_replies == 3) {
+			ret = vote(serv_values);
+			std::cout << "Reply!" << std::endl;
+			if (ret >= 0) {
+				/* Replace the data frame with the one obtained
+				 * from the voter.
+				 */
+				dealer_in[DATA_FRAME].rebuild(
+					(void*)&serv_values[ret],
+					sizeof(serv_values[ret]));  
+					;
+//				send_multi_msg(router, dealer_in);
+				num_replies = 0;
 			}
 		}
 	}
+}
+
+/**
+ * @brief Implements the voting logic
+ * @param values List containing the values returned from the servers
+ * @return >0 index of the majority value, -1 there is no majority
+ */
+
+uint8_t Broker::vote(int32_t values[])
+{
+	if (values[0] == values[1] || values[0] == values [2])
+		return 0;
+	else if (values[1] == values[2])
+		return 1;
+	else
+		return -1;
 }

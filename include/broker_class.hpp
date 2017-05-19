@@ -21,7 +21,9 @@ private:
 	/* Ports for communication */
 	std::list<uint16_t> port_dealer; 
 	uint16_t port_router;
-	uint16_t port_reg;	
+	uint16_t port_reg;
+
+	uint8_t vote(int32_t values[]);
 public:
 	/* Poll set */
 	std::vector<zmq::pollitem_t> items;
