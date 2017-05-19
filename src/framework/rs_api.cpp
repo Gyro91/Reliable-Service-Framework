@@ -5,6 +5,7 @@
 #include <new>
 #include <iostream>
 #include "../../include/rs_api.hpp"
+#include <stdio.h>
 
 /**
  * @brief It requests to the broker to register the server copies. 
@@ -17,7 +18,7 @@ uint16_t register_service(registration_module *reg_mod, zmq::socket_t *socket)
 {
 	uint16_t dealer_port;
 	zmq::message_t *request;
-
+	
 	try {
 		request = new zmq::message_t(sizeof(registration_module));	
 	} catch (std::bad_alloc& ba) {
@@ -27,7 +28,10 @@ uint16_t register_service(registration_module *reg_mod, zmq::socket_t *socket)
 	/* Sending request */
        	memcpy(request->data(), (void *) reg_mod, sizeof(registration_module));
         std::cout << "Sending a request for the service "<< reg_mod->service << std::endl;
-        socket->send(*request);
+        bool ret = socket->send(*request);
+        if (ret == false) {
+        	perror("Error sending \n");
+        }
         std::cout << "Sended "<< std::endl;
 
         /* Receiving an answer */

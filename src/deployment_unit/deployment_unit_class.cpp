@@ -53,11 +53,10 @@ DeploymentUnit::DeploymentUnit(std::string broker_address, uint8_t num_copy_serv
 		std::cerr << "bad_alloc caught: " << ba.what() << std::endl;
 		exit(EXIT_FAILURE);
 	}
-
 	memset(str, '\0', MAX_LENGTH_STRING_PORT);
 	sprintf(str, "%d", reg_port);
 	conf = (protocol + broker_address + ":" + str);
-	reg->connect(conf.c_str());
+	reg->connect("tcp://localhost:5555");
 
 	std::cout << conf << std::endl;
 }
