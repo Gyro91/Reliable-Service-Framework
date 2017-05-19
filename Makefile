@@ -3,12 +3,13 @@ CFLAGS = -Wall -std=c++11 -g
 LDFLAGS = -L/usr/local/lib -lzmq 
 
 EXEC_1 = depl_unit #adding here the name of the program
-SOURCES_1 = $(wildcard src/deployment_unit/*.cpp) $(wildcard src/framework/*.cpp)
+SOURCES_1 = $(wildcard src/deployment_unit/*.cpp) 
+
 PATH_1 = src/deployment_unit/
 OBJECTS_1 = $(SOURCES_1:.cpp=.o)
 
 EXEC_2 = server #adding here the name of the program
-SOURCES_2 = $(wildcard src/server/*.cpp)
+SOURCES_2 = $(wildcard src/server/*.cpp) $(wildcard src/framework/*.cpp)
 PATH_2 = src/server/
 OBJECTS_2 = $(SOURCES_2:.cpp=.o)
 
@@ -55,7 +56,6 @@ $(PATH_4)%.o: $(PATH_4)%.cpp
 $(PATH_U)%.o: $(PATH_U)%.cpp 
 	$(CC) -c $(CFLAGS) $< -o $@
 
-	
 clean:
 	rm -rf $(EXEC_1) $(OBJECTS_1)
 	rm -rf $(EXEC_2) $(OBJECTS_2)
