@@ -89,11 +89,8 @@ void Broker::step()
 				size_t more_size = sizeof (more);
 				router->getsockopt(ZMQ_RCVMORE, &more, 
 					&more_size);
-				for (uint8_t i = 0; i < 3; i++) {
-					zmq::message_t tmp(message.data(), message.size(), NULL);
-					dealer_test->send(tmp, more? ZMQ_SNDMORE: 0);
-				}
-
+				dealer_test->send(message, more? ZMQ_SNDMORE: 0);
+			
 				if (!more)
 					break;
 			}

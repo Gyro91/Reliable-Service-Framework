@@ -23,8 +23,7 @@ private:
 public:
 	zmq::socket_t *reg;
 
-	Registrator(std::string broker_address, uint8_t num_copy_server, service_type_t service, uint16_t reg_port, 
-		zmq::context_t *ctx);
+	Registrator(std::string broker_address, service_type_t service, uint16_t reg_port, zmq::context_t *ctx);
 	void registration();
 	~Registrator();
 };

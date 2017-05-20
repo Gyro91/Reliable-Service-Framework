@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include "types.hpp"
 #include "service.hpp"
+#include "registrator_class.hpp"
 
 class Server {
 
@@ -27,7 +28,8 @@ private:
 	/* Sockets for ZMQ communication */
 	zmq::context_t *context;
 	zmq::socket_t *reply;
-	
+	/* Registrator to register this unit to the broker */
+	Registrator *registrator;
 	/* Receive requests from the broker */
 	void receive_request(int32_t *val);
 	/* Send results to the broker */
