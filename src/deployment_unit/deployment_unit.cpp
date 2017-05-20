@@ -9,15 +9,14 @@
 #include <iostream>
 #include "../../include/util.hpp"
 #include "../../include/communication.hpp"
-#include "../../include/deployment_unit_class.hpp"
 #define NUM_OPTIONS 2
 #define NUM_MIN_NMR 1
 
 int32_t main(int32_t argc, char_t* argv[])
 {
-	uint8_t num_copy_server;
-	service_type_t service;
-	DeploymentUnit *deployment_unit;
+	uint8_t num_copy_server, service;
+	int32_t status = 0;
+	pid_t *list_server_pid;
 
 	/* Parsing the arguments */
 	get_arg(argc, argv, num_copy_server, service, NUM_OPTIONS);
@@ -27,20 +26,18 @@ int32_t main(int32_t argc, char_t* argv[])
 		exit(EXIT_FAILURE);
 	}
 
+	/* Allocating memory for the pid of each server */
 	try {
-		deployment_unit = new DeploymentUnit(LOCALHOST, num_copy_server,
-			service, REG_PORT_BROKER);
+		list_server_pid = new pid_t[num_copy_server];
 	} catch (std::bad_alloc& ba) {
 		std::cerr << "bad_alloc caught: " << ba.what() << std::endl;
 		exit(EXIT_FAILURE);
 	}
-	/* Registering Server */
-	//deployment_unit->registration();
+
 	/* Spawning server copies */
 	std::cout << "#Deployment_Unit: Spawning server copies"
 			<< std::endl;
-	
-	deployment_unit->deployment();
+	deployment(service, num_copy_server, list_server_pid, &status);
 
 
 	return EXIT_SUCCESS;

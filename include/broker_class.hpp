@@ -22,9 +22,6 @@ private:
 	std::list<uint16_t> port_dealer; 
 	uint16_t port_router;
 	uint16_t port_reg;
-
-	uint8_t vote(int32_t values[]);
-public:
 	/* Poll set */
 	std::vector<zmq::pollitem_t> items;
 	/* Sockets for ZMQ communication */
@@ -32,7 +29,9 @@ public:
 	std::list<zmq::socket_t*> dealer;
 	zmq::socket_t *reg;
 	zmq::socket_t *router;
-
+	/* Function for voting */
+	uint8_t vote(int32_t values[]);	
+public:
 	Broker(uint8_t nmr, uint16_t port_router, uint16_t port_reg);
 	void step();
 	~Broker();

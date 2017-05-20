@@ -1,5 +1,5 @@
 /*
- * check_util.cpp
+ * util.cpp
  *
  */
 
@@ -7,9 +7,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>
-#include "../../include/communication.hpp"
+#include <zmq.hpp>
+#include <iostream>
+#include <sys/wait.h>
 #include "../../include/util.hpp"
-
+#include "../../include/communication.hpp"
 
 /**
  * @brief Retrieves the option passed to the program
@@ -22,7 +24,7 @@
  */
 
 void get_arg(int32_t argc, char_t *argv[], uint8_t &num_cp_server,
-		service_type_t &service, char_t num_options)
+	uint8_t &service, char_t num_options)
 {
 	char_t c;
 	uint8_t cnt_options = 0;
@@ -40,20 +42,17 @@ void get_arg(int32_t argc, char_t *argv[], uint8_t &num_cp_server,
 			num_cp_server = atoi(optarg);
 			break;
 		case 's':
-			service = static_cast<service_type_t>(atoi(optarg));
+			service = atoi(optarg);
 			break;
 		case '?':
 			if (optopt == 't')
-				fprintf (stderr,
-						"Option -%c requires "
-						"an argument.\n",
-						optopt);
-			else if (isprint (optopt))
-				fprintf (stderr, "Unknown option -%c.\n",
+				fprintf (stderr, "Option -%c requires "
+					"an argument.\n", optopt);
+			else if (isprint(optopt))
+				fprintf(stderr, "Unknown option -%c.\n",
 						optopt);
 			else
-				fprintf (stderr,
-						"Unknown option character\n");
+				fprintf(stderr, "Unknown option character\n");
 			exit(EXIT_FAILURE);
 		default:
 			exit(EXIT_FAILURE);
@@ -61,9 +60,7 @@ void get_arg(int32_t argc, char_t *argv[], uint8_t &num_cp_server,
 	}
 
 	if (cnt_options != num_options) {
-		fprintf (stderr,
-				"The number of options must be: %d\n",
-				num_options);
+		fprintf (stderr, "The number of options must be: %d\n", num_options);
 		exit(EXIT_FAILURE);
 	}
 
@@ -79,8 +76,7 @@ void get_arg(int32_t argc, char_t *argv[], uint8_t &num_cp_server,
  * @return Pointer to the created socket
  */
 
-zmq::socket_t* add_socket(zmq::context_t * ctx, std::string addr, uint16_t port, 
-					int32_t skt_type, uint8_t dir)
+zmq::socket_t* add_socket(zmq::context_t *ctx, std::string addr, uint16_t port, int32_t skt_type, uint8_t dir)
 {
 	zmq::socket_t *skt;
 	std::string p, conf;
@@ -104,7 +100,7 @@ zmq::socket_t* add_socket(zmq::context_t * ctx, std::string addr, uint16_t port,
 	else
 		skt->connect(conf.c_str());
 	
-	std::cout << "Configuration: "<< conf << std::endl;
+	std::cout << "Configuration: " << conf << std::endl;
 	
 	return skt; 
 }
@@ -128,3 +124,42 @@ void send_multi_msg(zmq::socket_t *skt, std::vector<zmq::message_t> &msg)
 	tmp.rebuild(msg[i].data(), msg[i].size());
 	skt->send(tmp, 0);
 }
+/*
+ * @brief It deploys the server copies for the specified service
+ * @param service It is the server service
+ * @param list_server_pid Array of server pid
+ * @param status Variable to monitor children
+ * @return 
+ */
+
+void deployment(uint8_t service, uint8_t num_copy_server, pid_t *list_server_pid, int32_t *status)
+{
+	int8_t ret;
+	uint8_t i = 0;
+
+	/* Server copies deployment */
+	for (;;) {
+		if (i == num_copy_server) {
+			std::cout << "#Deployment_Unit: "
+				"Server copies deployed" << std::endl;	
+			/* Wait on the children */
+			wait(&status);
+			std::cerr << "Wake up!Something happened to "
+				"my children!" << std::endl;
+			break;
+		}
+		list_server_pid[i] = fork();
+		if (list_server_pid[i] == 0) {
+			char_t server_service = static_cast<char_t>(service);
+			/* Becoming one of the redundant copies */
+			ret = execlp("./server", &server_service, &i,
+					(char_t *)NULL);
+			if (ret == -1) {
+				perror("Error execlp on server");
+				exit(EXIT_FAILURE);
+			}
+		} else
+			i++;
+	}
+}
+

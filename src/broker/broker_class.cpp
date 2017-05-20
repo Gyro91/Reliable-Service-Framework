@@ -87,16 +87,17 @@ void Broker::step()
 		std::cout << "Waking up" << std::endl;
 		/* Check for messages on the ROUTER socket */
 		if (items[0].revents & ZMQ_POLLIN) {
-				/* Receive multiple messages,
-				 * one frame at a time */
-				for (uint8_t i = 0; i < ENVELOPE; i++) {
-					router->recv(&tmp);
-					router_in[i].copy(&tmp);
-				}
+			/* Receive multiple messages,
+			 * one frame at a time */
+			for (uint8_t i = 0; i < ENVELOPE; i++) {
+				router->recv(&tmp);
+				router_in[i].copy(&tmp);
+			}
 
-				/* Send the data */
-				for (uint8_t i = 0; i < 3; i++)
-					send_multi_msg(dealer_test, router_in);
+			/* Send the data */
+			for (uint8_t i = 0; i < 3; i++)
+				send_multi_msg(dealer_test, router_in);
+
 		}
 		/* Check for a registration request */
 		if (items[1].revents & ZMQ_POLLIN) {

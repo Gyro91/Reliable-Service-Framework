@@ -21,15 +21,15 @@
  * 
  */
 
-Server::Server(uint8_t id_server, uint8_t service_t, std::string broker_addr, 
-		uint16_t broker_p) 
+Server::Server(uint8_t id_, uint8_t service_type, std::string broker_address, 
+		uint16_t broker_port) 
 {
-	id = id_server;
-	service_type = (service_type_t)service_t;
-	broker_port = broker_p;
-	broker_address = broker_addr;
+	this->id = id;
+	this->service_type = (service_type_t)service_type;
+	this->broker_port = broker_port;
+	this->broker_address = broker_address;
 
-	service = get_service_body(service_type);
+	service = get_service_body(this->service_type);
 
 	/* Allocating ZMQ context */
 	try {
@@ -40,7 +40,14 @@ Server::Server(uint8_t id_server, uint8_t service_t, std::string broker_addr,
 	}
 	
 	/* In this case the REP socket requires the connect() method! */
-	reply = add_socket(context, broker_addr, broker_p, ZMQ_REP, CONNECT);
+	reply = add_socket(context, broker_address, broker_port, ZMQ_REP, CONNECT);
+
+	try {
+		registrator = new Registrator(broker_address, (service_type_t)service_type, REG_PORT_BROKER, context);
+	} catch (std::bad_alloc& ba) {
+		std::cerr << "bad_alloc caught: " << ba.what() << std::endl;
+		exit(EXIT_FAILURE);
+	}	
 }
 
 /**
@@ -52,6 +59,7 @@ Server::~Server()
 {
 	delete context;
 	delete reply;
+	delete registrator;
 }
 
 /**
@@ -61,19 +69,21 @@ Server::~Server()
 void Server::step()
 {	 
 	int32_t val, val_elab;
-	try {
-		for (;;) {
-			/* Receiving the value to elaborate */
-			receive_request(&val);
+	
 
-			/* Elaborating */
-			val_elab = service(val);
-			sleep(1);
+	registrator->registration();
+	
+	for (;;) {
+		/* Receiving the value to elaborate */
+		receive_request(&val);
 
-			/* Sending back the result */
-			deliver_service(val_elab);
-		}
-	} catch (std::exception &e) {}
+		/* Elaborating */
+		val_elab = service(val);
+		sleep(1);
+
+		/* Sending back the result */
+		deliver_service(val_elab);
+	}
 }
 
 /**
