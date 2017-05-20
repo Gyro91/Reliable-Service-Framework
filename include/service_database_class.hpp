@@ -8,12 +8,13 @@
 
 #include "types.hpp"
 #include "service.hpp"
+#include "rs_api.hpp"
+#include <string>
+#include <map>
 
-struct service_record {
-	/* Unique identifier of the server copies group */
-	uint32_t id; 
-	/* Service type of the server copies group */
-	service_type_t service_type;
+struct service_record { 
+	/* Owner of the service */
+	std::string owner;
 	/* Copies of the group that has registered */
 	uint8_t num_copies_registered;
 	/* Copies of the group that are working correctly */
@@ -25,12 +26,14 @@ struct service_record {
 class ServiceDatabase {
 
 private:
-	std::list<service_record> services_list;
+	/* Table for registered services */
+	std::map<service_type_t, service_record> services_db;
 	/* This is the index of the current available posistion in the dealer socket list */
 	uint16_t next_dealer_skt_index;
 public:
-	int32_t push_registration(registration_module *);
-
+	void push_registration(registration_module *reg_mod);
+	
+	std::map<service_type_t, service_record>::iterator *find_registration(service_type_t);
 	ServiceDatabase();
 	~ServiceDatabase();
 };

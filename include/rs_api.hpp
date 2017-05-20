@@ -14,10 +14,12 @@
 #define INCLUDE_RS_API_HPP_
 
 #include <zmq.hpp>
+#include <string>
 #include "types.hpp"
 #include "service.hpp"
 
 struct registration_module {
+	std::string signature;
 	service_type_t service;
 };
 
