@@ -70,11 +70,13 @@ void get_arg(int32_t argc, char_t *argv[], uint8_t &num_cp_server,
 }
 
 /**
- * @brief 
- * @param addr
- * @param port
- * @param type
- * @return 
+ * @brief Adds a socket to the actual context
+ * @param ctx Pointer to the actual context
+ * @param addr Address of the socket
+ * @param port Port of the socket
+ * @param skt_type Type of the socket (ZMQ_REP, ZMQ_REQ, etc.)
+ * @param dir Direction of the communication (CONNECT or BIND)
+ * @return Pointer to the created socket
  */
 
 zmq::socket_t* add_socket(zmq::context_t * ctx, std::string addr, uint16_t port, 
@@ -107,19 +109,22 @@ zmq::socket_t* add_socket(zmq::context_t * ctx, std::string addr, uint16_t port,
 	return skt; 
 }
 
-void send_multi_msg(zmq::socket_t* skt, std::vector<zmq::message_t> msg)
+/**
+ * @brief Sends a message composed by multiple frames
+ * @param skt Socket used to send the messages
+ * @param msg Vector containing the messages to be sent
+ */
+ 
+void send_multi_msg(zmq::socket_t *skt, std::vector<zmq::message_t> &msg)
 {
 	uint8_t i;
-	for (i = 0; i < msg.size() - 1; i++)
-		skt->send(msg[i], ZMQ_SNDMORE);
-
-	/* Last message in the sequence */	
-	skt->send(msg[++i], 0);
-}
-
-void push_msg(std::vector<zmq::message_t> vect, zmq::message_t msg)
-{
 	zmq::message_t tmp;
-	
-	
+	for (i = 0; i < msg.size() - 1; i++) {
+		tmp.rebuild(msg[i].data(), msg[i].size());
+		skt->send(tmp, ZMQ_SNDMORE);
+	}
+
+	/* Last message in the sequence */
+	tmp.rebuild(msg[i].data(), msg[i].size());
+	skt->send(tmp, 0);
 }

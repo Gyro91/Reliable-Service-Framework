@@ -91,12 +91,12 @@ void Broker::step()
 				 * one frame at a time */
 				for (uint8_t i = 0; i < ENVELOPE; i++) {
 					router->recv(&tmp);
-//					router_in.push_back(tmp);
+					router_in[i].copy(&tmp);
 				}
 
 				/* Send the data */
-//				for (uint8_t i = 0; i < 3; i++)
-//					send_multi_msg(dealer_test, router_in);
+				for (uint8_t i = 0; i < 3; i++)
+					send_multi_msg(dealer_test, router_in);
 		}
 		/* Check for a registration request */
 		if (items[1].revents & ZMQ_POLLIN) {
@@ -135,26 +135,24 @@ void Broker::step()
 			/* Receiving all the messages */
 			for (uint8_t i = 0; i < ENVELOPE; i++) {
 				dealer_test->recv(&tmp);
-//				dealer_in.push_back(tmp);
+				dealer_in[i].copy(&tmp);
 			}
 			
+			/* Store the replies from the servers */
 			serv_values[num_replies] = (*(static_cast<int32_t*>
 				(dealer_in[DATA_FRAME].data())));
 			num_replies++;
-//			std::cout << (int32_t)num_replies << std::endl;
 		}
 		if (num_replies == 3) {
 			ret = vote(serv_values);
-			std::cout << "Reply!" << std::endl;
 			if (ret >= 0) {
 				/* Replace the data frame with the one obtained
 				 * from the voter.
 				 */
 				dealer_in[DATA_FRAME].rebuild(
 					(void*)&serv_values[ret],
-					sizeof(serv_values[ret]));  
-					;
-//				send_multi_msg(router, dealer_in);
+					sizeof(serv_values[ret]));
+				send_multi_msg(router, dealer_in);
 				num_replies = 0;
 			}
 		}
