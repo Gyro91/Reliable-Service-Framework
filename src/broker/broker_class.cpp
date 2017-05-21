@@ -26,6 +26,7 @@ Broker::Broker(uint8_t nmr, uint16_t port_router, uint16_t port_reg)
 	this->nmr = nmr;
 	this->port_router = port_router;
 	this->port_reg = port_reg;
+	this->available_dealer_port = DEALER_START_PORT;
 
 	/* Allocating ZMQ context */
 	try {
@@ -58,6 +59,8 @@ Broker::Broker(uint8_t nmr, uint16_t port_router, uint16_t port_reg)
 	tmp = {static_cast<void*>(*dealer.front()), 0, ZMQ_POLLIN, 0};
 	items.push_back(tmp);
 
+	/* Creating a Service Database*/
+	db = new ServiceDatabase(nmr);
 }
 
 /* Broker denstructor */
@@ -67,6 +70,7 @@ Broker::~Broker()
 	delete context;
 	delete router;
 	delete reg;
+	delete db;
 }
 
 void Broker::step()
@@ -104,8 +108,6 @@ void Broker::step()
 		if (items[1].revents & ZMQ_POLLIN) {
 
 			for(;;) {
-				/* Receiving the value to elaborate */
-				std::cout << "Receiving registration" << std::endl;
 	       			reg->recv(&message);
 	       			size_t more_size = sizeof(more);
                 		reg->getsockopt(ZMQ_RCVMORE, &more, 
@@ -114,20 +116,21 @@ void Broker::step()
 				if (more == 1) 
 					reg->send(message, ZMQ_SNDMORE);
 	       	   		if (!more) {
+	       	   			bool ready = false;
+	       	 			/* Receiving the registration module */
+					std::cout << "Receiving registration" << std::endl;
 	       	   			registration_module rm = *(static_cast<registration_module*> 
 	       	   				(message.data()));
-	            			std::cout << "Received " 
-	            				<< rm.service << std::endl;
-	       		
-       					/* Elaborating */
-       					rm.service = MULTIPLY2;
-       					std::cout << rm.signature << std::endl;
+	            		
+       					/* Registrating */
+       					uint16_t ret = db->push_registration(&rm,available_dealer_port, ready);
+
+       					std::cout << ret << std::endl;
+       					db->print_htable();
 	       	   			/* Sending back the result */
-       					zmq::message_t reply(sizeof(registration_module));
+       					zmq::message_t reply(sizeof(ret));
        					memcpy(reply.data(), 
-       						(void *) &rm, sizeof(registration_module));
-	        			std::cout << "Sending "<< rm.service 
-	        				<< std::endl;
+       						(void *) &ret, sizeof(ret));
 	       	   			reg->send(reply, 0);
 	       	   			break;
 	       	   		}

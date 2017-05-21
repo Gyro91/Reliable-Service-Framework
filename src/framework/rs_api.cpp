@@ -37,7 +37,7 @@ uint16_t register_service(registration_module *reg_mod, zmq::socket_t *socket)
         /* Receiving an answer */
         zmq::message_t reply;
     	socket->recv(&reply);
-	dealer_port = (*(static_cast<registration_module*> (reply.data()))).service;
+	dealer_port = *(static_cast<uint16_t*> (reply.data()));
 	std::cout << "Received Dealer port" << dealer_port << std::endl;
 
 	return dealer_port;

@@ -12,6 +12,7 @@
 #include <list>
 #include "types.hpp"
 #include "service.hpp"
+#include "service_database_class.hpp"
 
 class Broker {
 
@@ -22,13 +23,17 @@ private:
 	std::list<uint16_t> port_dealer; 
 	uint16_t port_router;
 	uint16_t port_reg;
+	uint16_t available_dealer_port;
 	/* Poll set */
 	std::vector<zmq::pollitem_t> items;
 	/* Sockets for ZMQ communication */
 	zmq::context_t *context;
-	std::list<zmq::socket_t*> dealer;
+	std::vector<zmq::socket_t*> dealer;
 	zmq::socket_t *reg;
 	zmq::socket_t *router;
+	/* Services Database */
+	ServiceDatabase *db;
+
 	/* Function for voting */
 	uint8_t vote(int32_t values[]);	
 public:
