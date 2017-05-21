@@ -9,14 +9,30 @@
 #include "../../include/types.hpp"
 #include "../../include/broker_class.hpp"
 #include "../../include/communication.hpp"
+#include "../../include/service_database_class.hpp"
 #include <zmq.hpp>
 
 
 int32_t main(int32_t argc, char_t* argv[])
 {	
-	Broker broker(3, ROUTER_PORT_BROKER, REG_PORT_BROKER);
+	/*
+	registration_module rm;
+	rm.signature = "pippo";
+	rm.service = INCREMENT;
 
-	broker.step();
+	ServiceDatabase db = ServiceDatabase();
+	db.push_registration(&rm);
+	db.push_registration(&rm);
+
+	rm.signature = "ezio";
+	rm.service = DECREMENT;
+	db.push_registration(&rm);
+	db.print_htable();
+	*/
+	
+	//Broker broker(3, ROUTER_PORT_BROKER, REG_PORT_BROKER);
+
+	//broker.step();
 
 	return EXIT_SUCCESS;
 }
