@@ -37,10 +37,7 @@ Server::Server(uint8_t id_, uint8_t service_type, std::string broker_address,
 	} catch (std::bad_alloc& ba) {
 		std::cerr << "bad_alloc caught: " << ba.what() << std::endl;
 		exit(EXIT_FAILURE);
-	}
-	
-	/* In this case the REP socket requires the connect() method! */
-	reply = add_socket(context, broker_address, broker_port, ZMQ_REP, CONNECT);
+	}	
 
 	try {
 		registrator = new Registrator(broker_address, (service_type_t)service_type, REG_PORT_BROKER, context);
@@ -70,9 +67,15 @@ void Server::step()
 {	 
 	int32_t val, val_elab;
 	
+	this->broker_port = registrator->registration();
+	if (this->broker_port > 0 && this->broker_port <= 65535) {
+		/* In this case the REP socket requires the connect() method! */
+		reply = add_socket(context, broker_address, broker_port, ZMQ_REP, CONNECT);
+	} else {
+		std::cerr << "Error in the registration!" << std::endl;
+		exit(EXIT_FAILURE);
+	}
 
-	registrator->registration();
-	
 	for (;;) {
 		/* Receiving the value to elaborate */
 		receive_request(&val);
