@@ -29,10 +29,10 @@ int32_t main(int32_t argc, char_t* argv[])
 	db.push_registration(&rm);
 	db.print_htable();
 	*/
-	
-	//Broker broker(3, ROUTER_PORT_BROKER, REG_PORT_BROKER);
 
-	//broker.step();
+	Broker broker(3, ROUTER_PORT_BROKER, REG_PORT_BROKER);
+
+	broker.step();
 
 	return EXIT_SUCCESS;
 }

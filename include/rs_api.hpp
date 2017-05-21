@@ -17,9 +17,10 @@
 #include <string>
 #include "types.hpp"
 #include "service.hpp"
+#define MAX_LENGTH_SIGNATURE 32
 
 struct registration_module {
-	std::string signature;
+	char_t signature[MAX_LENGTH_SIGNATURE];
 	service_type_t service;
 };
 

@@ -27,17 +27,17 @@ uint16_t register_service(registration_module *reg_mod, zmq::socket_t *socket)
 	}
 	/* Sending request */
        	memcpy(request->data(), (void *) reg_mod, sizeof(registration_module));
-        std::cout << "Sending a request for the service "<< reg_mod->service << std::endl;
+        std::cout << "Sending a request for the service " << reg_mod->service << std::endl;
         bool ret = socket->send(*request);
         if (ret == false) {
         	perror("Error sending \n");
         }
-        std::cout << "Sended "<< std::endl;
+        std::cout << "Sended " << std::endl;
 
         /* Receiving an answer */
         zmq::message_t reply;
     	socket->recv(&reply);
-	dealer_port = *(static_cast<uint16_t*> (reply.data()));
+	dealer_port = (*(static_cast<registration_module*> (reply.data()))).service;
 	std::cout << "Received Dealer port" << dealer_port << std::endl;
 
 	return dealer_port;

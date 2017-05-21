@@ -8,6 +8,7 @@
 #include "../../include/broker_class.hpp"
 #include "../../include/communication.hpp"
 #include "../../include/util.hpp"
+#include "../../include/rs_api.hpp"
 
 /**
  * @brief Broker constructor that initializes alle the private data and
@@ -113,18 +114,19 @@ void Broker::step()
 				if (more == 1) 
 					reg->send(message, ZMQ_SNDMORE);
 	       	   		if (!more) {
-	       	   			int32_t val = *(static_cast<int32_t*> 
+	       	   			registration_module rm = *(static_cast<registration_module*> 
 	       	   				(message.data()));
 	            			std::cout << "Received " 
-	            				<< val << std::endl;
+	            				<< rm.service << std::endl;
 	       		
        					/* Elaborating */
-       					val = val + 1;
+       					rm.service = MULTIPLY2;
+       					std::cout << rm.signature << std::endl;
 	       	   			/* Sending back the result */
-       					zmq::message_t reply(4);
+       					zmq::message_t reply(sizeof(registration_module));
        					memcpy(reply.data(), 
-       						(void *) &val, 4);
-	        			std::cout << "Sending "<< val 
+       						(void *) &rm, sizeof(registration_module));
+	        			std::cout << "Sending "<< rm.service 
 	        				<< std::endl;
 	       	   			reg->send(reply, 0);
 	       	   			break;
