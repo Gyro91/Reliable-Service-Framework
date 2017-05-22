@@ -37,7 +37,9 @@ private:
 	/* Function for voting */
 	uint8_t vote(int32_t values[]);
 	/* Function for adding a dealer socket */
-	void add_dealer(uint16_t dealer_port);	
+	void add_dealer(uint16_t dealer_port);
+	/* Function to get a request from the client */
+	void get_request(std::vector<zmq::message_t> &router_in);	
 public:
 	Broker(uint8_t nmr, uint16_t port_router, uint16_t port_reg);
 	void step();

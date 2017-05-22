@@ -19,7 +19,7 @@ PATH_3 = src/broker/
 OBJECTS_3 = $(SOURCES_3:.cpp=.o)
 
 EXEC_4 = client #adding here the name of the program
-SOURCES_4 = $(wildcard src/client/*.cpp)
+SOURCES_4 = $(wildcard src/client/*.cpp) $(wildcard src/framework/*.cpp)
 PATH_4 = src/client/
 OBJECTS_4 = $(SOURCES_4:.cpp=.o)
 

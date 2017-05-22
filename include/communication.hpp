@@ -22,4 +22,27 @@
 
 #define ENVELOPE 3
 
+/**
+ * @brief      client request module for the service
+ */
+struct request_module {
+	service_type_t service;
+	int32_t parameter;
+};
+
+/**
+ * @brief      It's the service status
+ */
+enum service_status_t {
+	SERVICE_AVAILABLE, SERVICE_NOT_AVAILABLE, SERVICE_NOT_RELIABLE
+};
+
+/**
+ * @brief      broker response module for the service
+ */
+struct response_module {
+	service_status_t service_status;
+	int32_t result;
+};
+
 #endif /* INCLUDE_COMMUNICATION_HPP_ */

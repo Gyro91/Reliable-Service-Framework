@@ -56,7 +56,7 @@ private:
 public:
 	uint16_t push_registration(registration_module *reg_mod, 
 		uint16_t dealer_socket, bool &ready);
-	bool find_registration(service_type_t);
+	int32_t find_registration(service_type_t);
 	void print_htable();
 
 	ServiceDatabase(uint8_t nmr);

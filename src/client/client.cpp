@@ -6,32 +6,32 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
-#include "../../include/types.hpp"
 #include <zmq.hpp>
+#include "../../include/rs_api.hpp"
+#include "../../include/communication.hpp"
+
 
 
 int32_t main(int32_t argc, char_t* argv[])
 {	
-    	int32_t result;
+    	bool ret;
+        int32_t result;
+        request_module rm;
    	zmq::context_t context(1);
    	zmq::socket_t socket(context, ZMQ_REQ);
 
    	std::cout << "Connecting to the server…" << std::endl;
 	socket.connect("tcp://localhost:5559");
 
-	for (int32_t i = 0; i < 10; i++) {
-
-        	zmq::message_t request(4);
-       		memcpy(request.data(), (void *) &i, 4);
-        	std::cout << "Sending "<< i << std::endl;
-        	socket.send(request);
-                std::cout << "Sended "<< i << std::endl;
-        	//  Get the reply.
-        	zmq::message_t reply;
-    		socket.recv(&reply);
-                result = *(static_cast<int32_t*> (reply.data()));
-                std::cout << "Received " << result << std::endl;
+        rm.service = INCREMENT;
+        rm.parameter = 2;
+        ret = request_service(rm, &socket, result);
+        if (ret) {
+                std::cout << "Happy:)" << std::endl;
+                std::cout << "Result " << result << std::endl;
         }
+        else
+                std::cout << "Sad:(" << std::endl;
 
 	return EXIT_SUCCESS;
 }

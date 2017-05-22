@@ -77,6 +77,7 @@ Broker::~Broker()
  *
  * @param[in]  dealer_port  The dealer port
  */
+
 void Broker::add_dealer(uint16_t dealer_port)
 {	
 	zmq::pollitem_t item;
@@ -89,12 +90,58 @@ void Broker::add_dealer(uint16_t dealer_port)
 	items.push_back(item);
 }
 
+
+/**
+ * @brief      Gets the request from a client 
+ */
+void Broker::get_request(std::vector<zmq::message_t> &router_in)
+{	
+	int32_t ret;
+	zmq::message_t tmp;
+	request_module request;
+	response_module response;
+
+	/* Receive multiple messages,
+	 * one frame at a time */
+	for (uint8_t i = 0; i < ENVELOPE; i++) {
+		router->recv(&tmp);
+		router_in[i].copy(&tmp);
+	}
+
+	request = *(static_cast<request_module*> (router_in[DATA_FRAME].data())); 
+	ret = db->find_registration(request.service);
+	if (ret == -1) {
+		/* Service not available */
+		response.service_status = SERVICE_NOT_AVAILABLE;
+		router_in[DATA_FRAME].rebuild((void*) &response,
+			sizeof(response_module));
+		send_multi_msg(router, router_in);
+
+	} else {
+
+		/* Service available */
+		router_in[DATA_FRAME].rebuild((void*) &request.parameter,
+			sizeof(request.parameter));
+		/* 3 is the number of copies registered. It must be implemented
+		 * a function to extract it from the database */
+		for (uint8_t i = 0; i < 3; i++)
+			send_multi_msg(dealer[ret], router_in);
+	}
+
+}
+
+/**
+ * @brief      step function
+ */
+
 void Broker::step()
 {
 	int32_t more;
 	uint8_t num_replies = 0;
 	int32_t serv_values[3];
 	uint8_t ret;
+	response_module response;
+	/* Buffer for received messages */
 	std::vector<zmq::message_t> router_in(3);
 	std::vector<zmq::message_t> dealer_in(3);
 
@@ -104,19 +151,9 @@ void Broker::step()
 		zmq::poll(items, -1);
 		std::cout << "Waking up" << std::endl;
 		/* Check for messages on the ROUTER socket */
-		if (items[0].revents & ZMQ_POLLIN) {
-			/* Receive multiple messages,
-			 * one frame at a time */
-			for (uint8_t i = 0; i < ENVELOPE; i++) {
-				router->recv(&tmp);
-				router_in[i].copy(&tmp);
-			}
+		if (items[0].revents & ZMQ_POLLIN) 
+			get_request(router_in);
 
-			/* Send the data */
-			for (uint8_t i = 0; i < 3; i++)
-				send_multi_msg(dealer[0], router_in);
-
-		}
 		/* Check for a registration request */
 		if (items[1].revents & ZMQ_POLLIN) {
 
@@ -176,9 +213,12 @@ void Broker::step()
 					/* Replace the data frame with the 
 					 * one obtained from the voter.
 				 	 */
+					response.service_status = 
+						SERVICE_AVAILABLE;
+					response.result = serv_values[ret];
 					dealer_in[DATA_FRAME].rebuild(
-						(void*)&serv_values[ret],
-						sizeof(serv_values[ret]));
+						(void*)&response,
+						sizeof(response_module));
 					send_multi_msg(router, dealer_in);
 					num_replies = 0;
 				}

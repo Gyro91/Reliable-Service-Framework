@@ -17,14 +17,20 @@
 #include <string>
 #include "types.hpp"
 #include "service.hpp"
+#include "communication.hpp"
+
 #define MAX_LENGTH_SIGNATURE 32
 
+/**
+ * @brief      registration module for the server
+ */
 struct registration_module {
 	char_t signature[MAX_LENGTH_SIGNATURE];
 	service_type_t service;
 };
 
 extern uint16_t register_service(registration_module *, zmq::socket_t *);
+extern bool request_service(request_module &, zmq::socket_t *, int32_t &);
 
 #endif
 
