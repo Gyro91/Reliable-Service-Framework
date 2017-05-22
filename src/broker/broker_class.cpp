@@ -131,12 +131,84 @@ void Broker::get_request(std::vector<zmq::message_t> &router_in)
 }
 
 /**
+ * @brief      Gets the registration from a server.
+ */
+
+void Broker::get_registration()
+{	
+	int32_t more;
+	size_t more_size;
+	zmq::message_t message;
+
+	for (uint8_t i = 0; i < ENVELOPE; i++) {
+		reg->recv(&message);
+		more_size = sizeof(more);
+		reg->getsockopt(ZMQ_RCVMORE, &more, 
+			&more_size);
+
+		if (more == 1) 
+			reg->send(message, ZMQ_SNDMORE);
+		if (!more) {
+			bool ready = false;
+	       	 			/* Receiving the registration module */
+			std::cout << "Receiving registration" 
+			<< std::endl;
+			registration_module rm = 
+			*(static_cast<registration_module*> 
+				(message.data()));
+
+       					/* Registrating */
+			uint16_t ret = 
+			db->push_registration(&rm,
+				available_dealer_port, ready);
+       					/* If all the copies are registered */
+			if (ready) 
+				add_dealer(ret);
+
+
+			db->print_htable();
+	       	   			/* Sending back the result */
+			zmq::message_t reply(sizeof(ret));
+			memcpy(reply.data(), 
+				(void *) &ret, sizeof(ret));
+			reg->send(reply, 0);
+		}
+	}
+}
+
+/**
+ * @brief      Gets the response from a server
+ *
+ * @param[in]  dealer_index  The dealer index
+ * @param      num_replies   the replies number for the service
+ * @param      dealer_in     The dealer buffer
+ */
+
+void Broker::get_response(uint32_t dealer_index, uint8_t &num_replies, 
+	int32_t *serv_values, std::vector<zmq::message_t> &dealer_in)
+{	
+	zmq::message_t message;
+
+	/* Receiving all the messages */
+	for (uint8_t j = 0; j < ENVELOPE; j++) {
+		dealer[dealer_index]->recv(&message);
+		dealer_in[j].copy(&message);
+	}
+
+	/* Store the replies from the servers */
+	serv_values[num_replies] = 
+	(*(static_cast<int32_t*> 
+		(dealer_in[DATA_FRAME].data())));
+
+	num_replies++;
+}
+
+/**
  * @brief      step function
  */
 
 void Broker::step()
 {
-	int32_t more;
 	uint8_t num_replies = 0;
 	int32_t serv_values[3];
 	uint8_t ret;
@@ -146,67 +218,23 @@ void Broker::step()
 	std::vector<zmq::message_t> dealer_in(3);
 
 	for (;;) {
-		zmq::message_t route_id, empty, data, tmp, message;
 
 		zmq::poll(items, -1);
 		std::cout << "Waking up" << std::endl;
 		/* Check for messages on the ROUTER socket */
-		if (items[0].revents & ZMQ_POLLIN) 
+		if (items[ROUTER_POLL_INDEX].revents & ZMQ_POLLIN) 
 			get_request(router_in);
 
 		/* Check for a registration request */
-		if (items[1].revents & ZMQ_POLLIN) {
-
-			for(uint8_t i = 0; i < ENVELOPE; i++) {
-	       			reg->recv(&message);
-	       			size_t more_size = sizeof(more);
-                		reg->getsockopt(ZMQ_RCVMORE, &more, 
-                			&more_size);
-				
-				if (more == 1) 
-					reg->send(message, ZMQ_SNDMORE);
-	       	   		if (!more) {
-	       	   			bool ready = false;
-	       	 			/* Receiving the registration module */
-					std::cout << "Receiving registration" 
-					<< std::endl;
-	       	   			registration_module rm = 
-	       	   			*(static_cast<registration_module*> 
-	       	   				(message.data()));
-	            		
-       					/* Registrating */
-       					uint16_t ret = 
-       					db->push_registration(&rm,
-       						available_dealer_port, ready);
-       					/* If all the copies are registered */
-       					if (ready) 
-       						add_dealer(ret);
-       					
-       					
-       					db->print_htable();
-	       	   			/* Sending back the result */
-       					zmq::message_t reply(sizeof(ret));
-       					memcpy(reply.data(), 
-       						(void *) &ret, sizeof(ret));
-	       	   			reg->send(reply, 0);
-	       	   		}
-			}
-		}
-		/* Check for messages on the DEALER socket */
-		for (uint32_t i = 0; i < dealer.size(); i++) {
-			if (items[i + 2].revents & ZMQ_POLLIN) {
-				/* Receiving all the messages */
-				for (uint8_t j = 0; j < ENVELOPE; j++) {
-					dealer[i]->recv(&tmp);
-					dealer_in[j].copy(&tmp);
-				}
+		if (items[REG_POLL_INDEX].revents & ZMQ_POLLIN) 
+			get_registration();
 			
-				/* Store the replies from the servers */
-				serv_values[num_replies] = 
-				(*(static_cast<int32_t*> 
-					(dealer_in[DATA_FRAME].data())));
-				num_replies++;
-			}
+		/* Check for messages on the DEALER sockets */
+		for (uint32_t i = 0; i < dealer.size(); i++) {
+			if (items[i + DEALER_POLL_INDEX].revents & ZMQ_POLLIN) 
+				get_response(i, num_replies, serv_values, 
+					dealer_in);
+			
 			if (num_replies == 3) {
 				ret = vote(serv_values);
 				if (ret >= 0) {

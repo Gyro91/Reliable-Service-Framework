@@ -13,6 +13,10 @@
 #include "types.hpp"
 #include "service.hpp"
 #include "service_database_class.hpp"
+#define ROUTER_POLL_INDEX 0
+#define REG_POLL_INDEX 1
+#define DEALER_POLL_INDEX 2
+
 
 class Broker {
 
@@ -39,7 +43,12 @@ private:
 	/* Function for adding a dealer socket */
 	void add_dealer(uint16_t dealer_port);
 	/* Function to get a request from the client */
-	void get_request(std::vector<zmq::message_t> &router_in);	
+	void get_request(std::vector<zmq::message_t> &router_in);
+	/* Function to get a registration from the server */
+	void get_registration();
+	/* Function to get a service response from a server */
+	void get_response(uint32_t dealer_index, uint8_t &num_replies,
+		int32_t *serv_values, std::vector<zmq::message_t> &dealer_in);
 public:
 	Broker(uint8_t nmr, uint16_t port_router, uint16_t port_reg);
 	void step();

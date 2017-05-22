@@ -25,13 +25,15 @@ int32_t main(int32_t argc, char_t* argv[])
 
         rm.service = INCREMENT;
         rm.parameter = 2;
-        ret = request_service(rm, &socket, result);
-        if (ret) {
-                std::cout << "Happy:)" << std::endl;
-                std::cout << "Result " << result << std::endl;
+        for (uint8_t i = 0; i < 10; i++) {
+                ret = request_service(rm, &socket, result);
+                if (ret) {
+                        std::cout << "Happy:)" << std::endl;
+                        std::cout << "Result " << result << std::endl;
+                }
+                else
+                        std::cout << "Sad:(" << std::endl;
         }
-        else
-                std::cout << "Sad:(" << std::endl;
-
+        
 	return EXIT_SUCCESS;
 }
