@@ -35,7 +35,9 @@ private:
 	ServiceDatabase *db;
 
 	/* Function for voting */
-	uint8_t vote(int32_t values[]);	
+	uint8_t vote(int32_t values[]);
+	/* Function for adding a dealer socket */
+	void add_dealer(uint16_t dealer_port);	
 public:
 	Broker(uint8_t nmr, uint16_t port_router, uint16_t port_reg);
 	void step();

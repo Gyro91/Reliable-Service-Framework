@@ -60,7 +60,8 @@ void get_arg(int32_t argc, char_t *argv[], uint8_t &num_cp_server,
 	}
 
 	if (cnt_options != num_options) {
-		fprintf (stderr, "The number of options must be: %d\n", num_options);
+		fprintf (stderr, "The number of options must be: %d\n", 
+			num_options);
 		exit(EXIT_FAILURE);
 	}
 
@@ -76,7 +77,8 @@ void get_arg(int32_t argc, char_t *argv[], uint8_t &num_cp_server,
  * @return Pointer to the created socket
  */
 
-zmq::socket_t* add_socket(zmq::context_t *ctx, std::string addr, uint16_t port, int32_t skt_type, uint8_t dir)
+zmq::socket_t* add_socket(zmq::context_t *ctx, std::string addr, uint16_t port,
+	int32_t skt_type, uint8_t dir)
 {
 	zmq::socket_t *skt;
 	std::string p, conf;
@@ -132,7 +134,8 @@ void send_multi_msg(zmq::socket_t *skt, std::vector<zmq::message_t> &msg)
  * @return 
  */
 
-void deployment(uint8_t service, uint8_t num_copy_server, pid_t *list_server_pid, int32_t *status)
+void deployment(uint8_t service, uint8_t num_copy_server, 
+	pid_t *list_server_pid, int32_t *status)
 {
 	int8_t ret;
 	uint8_t i = 0;
