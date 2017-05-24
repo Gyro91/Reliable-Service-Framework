@@ -119,14 +119,14 @@ void Server::receive_request(int32_t* val)
 
 void Server::deliver_service(int32_t val)
 {
-	zmq::message_t msg(4);
-	bool ret;
+	server_reply_t server_reply;
+	zmq::message_t msg(sizeof(server_reply_t));
 	
-	memcpy(msg.data(), (void *) &val, 4);
-	ret = reply->send(msg);
-	if (ret == true)
-		std::cout << "Server " << (int32_t)id << " sent: " << val <<
-			std::endl;
-	else
-		exit(EXIT_FAILURE);
+	server_reply.result = val;
+	server_reply.service = service_type;
+	
+	memcpy(msg.data(), (void *) &server_reply, sizeof(server_reply_t));
+	reply->send(msg);
+	std::cout << "Server " << (int32_t)id << " sent: " << val <<
+		std::endl;
 }

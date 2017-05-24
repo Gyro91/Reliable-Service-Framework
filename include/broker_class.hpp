@@ -17,7 +17,12 @@
 #define REG_POLL_INDEX 1
 #define DEALER_POLL_INDEX 2
 
-
+/**
+ * @class Broker
+ * @file broker_class.hpp
+ * @brief 
+ */
+ 
 class Broker {
 
 private:
@@ -37,9 +42,9 @@ private:
 	zmq::socket_t *router;
 	/* Services Database */
 	ServiceDatabase *db;
-
+	
 	/* Function for voting */
-	uint8_t vote(int32_t values[]);
+	uint8_t vote(std::vector<int32_t> values, int32_t &result);
 	/* Function for adding a dealer socket */
 	void add_dealer(uint16_t dealer_port);
 	/* Function to get a request from the client */
@@ -47,8 +52,8 @@ private:
 	/* Function to get a registration from the server */
 	void get_registration();
 	/* Function to get a service response from a server */
-	void get_response(uint32_t dealer_index, uint8_t &num_replies,
-		int32_t *serv_values, std::vector<zmq::message_t> &dealer_in);
+	void get_response(uint32_t dealer_index, 
+		std::vector<zmq::message_t> &dealer_in);
 public:
 	Broker(uint8_t nmr, uint16_t port_router, uint16_t port_reg);
 	void step();

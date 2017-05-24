@@ -16,7 +16,7 @@
 #define DEALER_START_PORT 6000
 #define MAX_LENGTH_STRING_PORT 6
 
-#define ADDRESS_FRAME 0
+#define ID_FRAME 0
 #define EMPTY_FRAME 1
 #define DATA_FRAME 2
 
@@ -42,6 +42,16 @@ enum service_status_t {
  */
 struct response_module {
 	service_status_t service_status;
+	int32_t result;
+};
+
+/**
+ * @class server reply
+ * @file communication.hpp
+ * @brief data response from a server
+ */
+struct server_reply_t {
+	service_type_t service;
 	int32_t result;
 };
 

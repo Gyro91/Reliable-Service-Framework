@@ -94,18 +94,26 @@ void Broker::add_dealer(uint16_t dealer_port)
 /**
  * @brief      Gets the request from a client 
  */
+ 
 void Broker::get_request(std::vector<zmq::message_t> &router_in)
 {	
 	int32_t ret;
 	zmq::message_t tmp;
 	request_module request;
 	response_module response;
-
+	request_record_t request_record;
+	
 	/* Receive multiple messages,
 	 * one frame at a time */
 	for (uint8_t i = 0; i < ENVELOPE; i++) {
 		router->recv(&tmp);
 		router_in[i].copy(&tmp);
+		if (i == ID_FRAME) {
+			/* We get the client id and we add a request record */
+			uint8_t *p = (uint8_t *)tmp.data();
+			p++;
+			request_record.client_id = *((uint32_t *) p);
+		}
 	}
 
 	request = *(static_cast<request_module*> (router_in[DATA_FRAME].data())); 
@@ -118,16 +126,16 @@ void Broker::get_request(std::vector<zmq::message_t> &router_in)
 		send_multi_msg(router, router_in);
 
 	} else {
-
+		std::cout << ret << std::endl;
 		/* Service available */
 		router_in[DATA_FRAME].rebuild((void*) &request.parameter,
 			sizeof(request.parameter));
-		/* 3 is the number of copies registered. It must be implemented
-		 * a function to extract it from the database */
-		for (uint8_t i = 0; i < 3; i++)
+		/* Forwarding the parameter */
+		for (uint8_t i = 0; i < nmr; i++)
 			send_multi_msg(dealer[ret], router_in);
+		/* Saving the request in the db */
+		db->push_request(&request_record, request.service);
 	}
-
 }
 
 /**
@@ -150,24 +158,23 @@ void Broker::get_registration()
 			reg->send(message, ZMQ_SNDMORE);
 		if (!more) {
 			bool ready = false;
-	       	 			/* Receiving the registration module */
+			/* Receiving the registration module */
 			std::cout << "Receiving registration" 
 			<< std::endl;
 			registration_module rm = 
 			*(static_cast<registration_module*> 
 				(message.data()));
 
-       					/* Registrating */
+			/* Registering */
 			uint16_t ret = 
 			db->push_registration(&rm,
 				available_dealer_port, ready);
-       					/* If all the copies are registered */
+			/* If all the copies are registered */
 			if (ready) 
 				add_dealer(ret);
 
-
 			db->print_htable();
-	       	   			/* Sending back the result */
+			/* Sending back the result */
 			zmq::message_t reply(sizeof(ret));
 			memcpy(reply.data(), 
 				(void *) &ret, sizeof(ret));
@@ -184,23 +191,46 @@ void Broker::get_registration()
  * @param      dealer_in     The dealer buffer
  */
 
-void Broker::get_response(uint32_t dealer_index, uint8_t &num_replies, 
-	int32_t *serv_values, std::vector<zmq::message_t> &dealer_in)
+void Broker::get_response(uint32_t dealer_index, 
+	std::vector<zmq::message_t> &dealer_in)
 {	
+	int32_t num_copies, ret, result;
+	server_reply_t *server_reply;
+	response_module response;
 	zmq::message_t message;
-
+	uint32_t client_id;
+	
 	/* Receiving all the messages */
-	for (uint8_t j = 0; j < ENVELOPE; j++) {
+	for (uint8_t i = 0; i < ENVELOPE; i++) {
 		dealer[dealer_index]->recv(&message);
-		dealer_in[j].copy(&message);
+		dealer_in[i].copy(&message);
+		if (i == ID_FRAME) {
+			/* We get the client id */
+			uint8_t *p = (uint8_t *)message.data();
+			p++;
+			client_id = *((uint32_t *) p);
+		}
 	}
-
-	/* Store the replies from the servers */
-	serv_values[num_replies] = 
-	(*(static_cast<int32_t*> 
-		(dealer_in[DATA_FRAME].data())));
-
-	num_replies++;
+	
+	server_reply = static_cast<server_reply_t *> 
+		(dealer_in[DATA_FRAME].data());
+		
+	num_copies = db->push_result(server_reply, client_id);
+	if (num_copies == nmr) {
+		ret = vote(*(db->get_result(server_reply->service, client_id)), 
+			result);
+		if (ret >= 0) {
+			/* Replace the data frame with the
+			 * one obtained from the voter.
+			 */
+			std::cout << "HERE" << std::endl;
+			response.service_status = SERVICE_AVAILABLE;
+			response.result = result;
+			dealer_in[DATA_FRAME].rebuild((void*)&response, 
+				sizeof(response_module));
+			send_multi_msg(router, dealer_in);
+		}
+	}
 }
 
 /**
@@ -208,11 +238,7 @@ void Broker::get_response(uint32_t dealer_index, uint8_t &num_replies,
  */
 
 void Broker::step()
-{
-	uint8_t num_replies = 0;
-	int32_t serv_values[3];
-	uint8_t ret;
-	response_module response;
+{	
 	/* Buffer for received messages */
 	std::vector<zmq::message_t> router_in(3);
 	std::vector<zmq::message_t> dealer_in(3);
@@ -232,25 +258,7 @@ void Broker::step()
 		/* Check for messages on the DEALER sockets */
 		for (uint32_t i = 0; i < dealer.size(); i++) {
 			if (items[i + DEALER_POLL_INDEX].revents & ZMQ_POLLIN) 
-				get_response(i, num_replies, serv_values, 
-					dealer_in);
-			
-			if (num_replies == 3) {
-				ret = vote(serv_values);
-				if (ret >= 0) {
-					/* Replace the data frame with the 
-					 * one obtained from the voter.
-				 	 */
-					response.service_status = 
-						SERVICE_AVAILABLE;
-					response.result = serv_values[ret];
-					dealer_in[DATA_FRAME].rebuild(
-						(void*)&response,
-						sizeof(response_module));
-					send_multi_msg(router, dealer_in);
-					num_replies = 0;
-				}
-			}
+				get_response(i,	dealer_in);
 		}
 	}
 }
@@ -261,12 +269,16 @@ void Broker::step()
  * @return >0 index of the majority value, -1 there is no majority
  */
 
-uint8_t Broker::vote(int32_t values[])
+uint8_t Broker::vote(std::vector<int32_t> values, int32_t &result)
 {
-	if (values[0] == values[1] || values[0] == values [2])
+	if (values[0] == values[1] || values[0] == values [2]) {
+		result = values[0];
 		return 0;
-	else if (values[1] == values[2])
-		return 1;
+	}
+	else if (values[1] == values[2]) {
+		result = values[1];
+		return 0;
+	}
 	else
 		return -1;
 }

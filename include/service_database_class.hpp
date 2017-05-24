@@ -14,6 +14,24 @@
 #define REG_FAIL -1
 #define REG_OK -2
 
+
+/**
+ * @class request_record_t
+ * @brief Instance for a client request
+ */
+struct request_record_t {
+	/* Unique identifier of the client */
+	uint32_t client_id;
+	/* Container for the responses of the server copies */
+	std::vector<int32_t> results; 
+};
+
+/**
+ * @class service_record
+ * @file service_database_class.hpp
+ * @brief record for the service database
+ */
+ 
 struct service_record { 
 	/* Owner of the service */
 	std::string owner;
@@ -26,6 +44,8 @@ struct service_record {
 	/* Index to access in the dealer socket list to the dealer socket 
 	 * for this service */
 	uint16_t dealer_skt_index;
+	/* Vector of active requests from the clients */
+	std::vector<request_record_t> request_records;
 };
 
 /* std::unordered_map requires a hash functor in order to do anything.  
@@ -57,6 +77,11 @@ public:
 	uint16_t push_registration(registration_module *reg_mod, 
 		uint16_t dealer_socket, bool &ready);
 	int32_t find_registration(service_type_t);
+	int32_t push_result(server_reply_t *server_reply, uint32_t client_id);
+	std::vector<int32_t> *get_result(service_type_t service, 
+		uint32_t client_id);
+	void push_request(request_record_t *request_record, 
+		service_type_t service);
 	void print_htable();
 
 	ServiceDatabase(uint8_t nmr);

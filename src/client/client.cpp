@@ -23,9 +23,9 @@ int32_t main(int32_t argc, char_t* argv[])
    	std::cout << "Connecting to the server…" << std::endl;
 	socket.connect("tcp://localhost:5559");
 
-        rm.service = INCREMENT;
-        rm.parameter = 2;
-        for (uint8_t i = 0; i < 10; i++) {
+	rm.service = INCREMENT;
+	rm.parameter = 2;
+	for (uint8_t i = 0; i < 10; i++) {
                 ret = request_service(rm, &socket, result);
                 if (ret) {
                         std::cout << "Happy:)" << std::endl;
