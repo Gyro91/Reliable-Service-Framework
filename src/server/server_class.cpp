@@ -21,9 +21,9 @@
  * 
  */
 
-Server::Server(uint8_t id_, uint8_t service_type, std::string broker_address, 
+Server::Server(uint8_t id, uint8_t service_type, std::string broker_address, 
 		uint16_t broker_port) 
-{
+{	
 	this->id = id;
 	this->service_type = (service_type_t)service_type;
 	this->broker_port = broker_port;
@@ -77,7 +77,7 @@ void Server::step()
 		std::cerr << "Error in the registration!" << std::endl;
 		exit(EXIT_FAILURE);
 	}
-
+	
 	for (;;) {
 		/* Receiving the value to elaborate */
 		receive_request(&val);

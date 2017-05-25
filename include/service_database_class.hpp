@@ -78,10 +78,11 @@ public:
 		uint16_t dealer_socket, bool &ready);
 	int32_t find_registration(service_type_t);
 	int32_t push_result(server_reply_t *server_reply, uint32_t client_id);
-	std::vector<int32_t> *get_result(service_type_t service, 
+	std::vector<int32_t> get_result(service_type_t service, 
 		uint32_t client_id);
 	void push_request(request_record_t *request_record, 
 		service_type_t service);
+	void delete_request(service_type_t service, uint32_t client_id);
 	void print_htable();
 
 	ServiceDatabase(uint8_t nmr);

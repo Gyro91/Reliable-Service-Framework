@@ -126,7 +126,6 @@ void Broker::get_request(std::vector<zmq::message_t> &router_in)
 		send_multi_msg(router, router_in);
 
 	} else {
-		std::cout << ret << std::endl;
 		/* Service available */
 		router_in[DATA_FRAME].rebuild((void*) &request.parameter,
 			sizeof(request.parameter));
@@ -181,6 +180,7 @@ void Broker::get_registration()
 			reg->send(reply, 0);
 		}
 	}
+	
 }
 
 /**
@@ -206,7 +206,7 @@ void Broker::get_response(uint32_t dealer_index,
 		dealer_in[i].copy(&message);
 		if (i == ID_FRAME) {
 			/* We get the client id */
-			uint8_t *p = (uint8_t *)message.data();
+			uint8_t *p = (uint8_t *) message.data();
 			p++;
 			client_id = *((uint32_t *) p);
 		}
@@ -214,23 +214,32 @@ void Broker::get_response(uint32_t dealer_index,
 	
 	server_reply = static_cast<server_reply_t *> 
 		(dealer_in[DATA_FRAME].data());
-		
+	
 	num_copies = db->push_result(server_reply, client_id);
-	if (num_copies == nmr) {
-		ret = vote(*(db->get_result(server_reply->service, client_id)), 
-			result);
+	if (num_copies == nmr) { 
+		std::vector<int32_t> res = db->get_result(server_reply->
+			service, client_id); 
+			for (uint32_t i = 0; i < res.size(); i++)
+				std::cout << " " << res[i] << " " << std::endl;
+		ret = vote(res, result);
+		
 		if (ret >= 0) {
 			/* Replace the data frame with the
 			 * one obtained from the voter.
 			 */
-			std::cout << "HERE" << std::endl;
+			std::cout << "Result " << result << std::endl;
 			response.service_status = SERVICE_AVAILABLE;
 			response.result = result;
 			dealer_in[DATA_FRAME].rebuild((void*)&response, 
 				sizeof(response_module));
 			send_multi_msg(router, dealer_in);
 		}
+		
+		/* Deleting service request */
+		db->delete_request(server_reply->service, client_id);
 	}
+	
+	db->print_htable();
 }
 
 /**
@@ -270,7 +279,7 @@ void Broker::step()
  */
 
 uint8_t Broker::vote(std::vector<int32_t> values, int32_t &result)
-{
+{	
 	if (values[0] == values[1] || values[0] == values [2]) {
 		result = values[0];
 		return 0;

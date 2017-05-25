@@ -114,6 +114,32 @@ void ServiceDatabase::push_request(request_record_t *request_record,
 	
 	(i->second).request_records.push_back(*request_record);
 }
+/**
+ * @brief      It deletes a service request from the db
+ *
+ * @param[in]  service    The service
+ * @param[in]  client_id  The client identifier
+ */
+
+void ServiceDatabase::delete_request(service_type_t service, 
+	uint32_t client_id)
+{
+	std::unordered_map<service_type_t, service_record, 
+		service_type_hash>::iterator i = 
+		services_db.find(service);
+
+	if (i == services_db.end()) {
+		std::cerr << "Service not found" << std::endl;
+		exit(-1);
+	}
+	
+	service_record *record = &i->second;
+	
+	for (uint32_t j = 0; j < record->request_records.size(); j++) 
+		if (record->request_records[j].client_id == client_id) 
+			record->request_records.erase(record->
+			request_records.begin() + j); 
+}
 
 /**
  * @brief It updates with a result from a copy in the server
@@ -134,13 +160,13 @@ int32_t ServiceDatabase::push_result(server_reply_t *server_reply,
 		exit(-1);
 	}
 	
-	service_record record = i->second;
+	service_record *record = &i->second;
 	
-	for (uint32_t j = 0; j < record.request_records.size(); j++) {
-		if (record.request_records[j].client_id == client_id) {
-			record.request_records[j].results.push_back
+	for (uint32_t j = 0; j < record->request_records.size(); j++) {
+		if (record->request_records[j].client_id == client_id) {
+			record->request_records[j].results.push_back
 			(server_reply->result);
-			ret = record.request_records[j].results.size();  
+			ret = record->request_records[j].results.size();  
 		}
 	}
 	
@@ -153,10 +179,11 @@ int32_t ServiceDatabase::push_result(server_reply_t *server_reply,
  * @param client_id Id of the client
  * @return It returns the pointer to results
  */
-std::vector<int32_t> *ServiceDatabase::get_result(service_type_t service, 
+
+std::vector<int32_t> ServiceDatabase::get_result(service_type_t service, 
 	uint32_t client_id)
 {
-	std::vector<int32_t> *ret = NULL;
+	std::vector<int32_t> ret;
 	std::unordered_map<service_type_t, service_record, 
 		service_type_hash>::iterator i = 
 		services_db.find(service);
@@ -166,11 +193,11 @@ std::vector<int32_t> *ServiceDatabase::get_result(service_type_t service,
 		exit(-1);
 	}
 	
-	service_record record = i->second;
+	service_record *record = &i->second;
 	
-	for (uint32_t j = 0; j < record.request_records.size(); j++) {
-		if (record.request_records[j].client_id == client_id) {
-			ret = &record.request_records[j].results; 
+	for (uint32_t j = 0; j < record->request_records.size(); j++) {
+		if (record->request_records[j].client_id == client_id) {
+			ret = record->request_records[j].results; 
 		}
 	}
 	
@@ -183,10 +210,19 @@ std::vector<int32_t> *ServiceDatabase::get_result(service_type_t service,
 
 void ServiceDatabase::print_htable()
 {
-	for (auto it : services_db) 
+	for (auto it : services_db) {
     		std::cout << "Service: " << it.first << " Owner: " 
     		<< it.second.owner << " Copies: " << 
     		(uint32_t)it.second.num_copies_registered << 
-    		" Socket: " << it.second.dealer_socket << std::endl;
+    		" Socket: " << it.second.dealer_socket <<  std::endl;
+		
+		for (auto it_v : it.second.request_records) {
+			std::cout << "Client id " << (uint32_t)it_v.client_id 
+			<< " Voter values ";
+			for (auto it_val : it_v.results) 
+				std::cout << it_val << " ";
+			std::cout << std::endl;
+		}
+	}
 }
 
