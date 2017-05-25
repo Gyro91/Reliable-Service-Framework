@@ -121,7 +121,7 @@ void Server::deliver_service(int32_t val)
 {
 	server_reply_t server_reply;
 	zmq::message_t msg(sizeof(server_reply_t));
-	
+	std::cout<< service_type << std::endl;
 	server_reply.result = val;
 	server_reply.service = service_type;
 	

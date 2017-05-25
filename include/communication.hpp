@@ -51,8 +51,8 @@ struct response_module {
  * @brief data response from a server
  */
 struct server_reply_t {
-	service_type_t service;
 	int32_t result;
+	service_type_t service;
 };
 
 #endif /* INCLUDE_COMMUNICATION_HPP_ */

@@ -30,7 +30,7 @@ int32_t main(int32_t argc, char_t* argv[])
 
 	rm.service = service;
 	rm.parameter = 2;
-	for (uint8_t i = 0; i < 2; i++) {
+	for (uint8_t i = 0; i < 5; i++) {
                 ret = request_service(rm, &socket, result);
                 if (ret) {
                         std::cout << "Happy:)" << std::endl;

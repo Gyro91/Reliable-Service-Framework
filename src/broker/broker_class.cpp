@@ -195,7 +195,7 @@ void Broker::get_response(uint32_t dealer_index,
 	std::vector<zmq::message_t> &dealer_in)
 {	
 	int32_t num_copies, ret, result;
-	server_reply_t *server_reply;
+	server_reply_t server_reply;
 	response_module response;
 	zmq::message_t message;
 	uint32_t client_id;
@@ -212,13 +212,13 @@ void Broker::get_response(uint32_t dealer_index,
 		}
 	}
 	
-	server_reply = static_cast<server_reply_t *> 
-		(dealer_in[DATA_FRAME].data());
+	server_reply = *(static_cast<server_reply_t *> 
+		(dealer_in[DATA_FRAME].data()));
 	
-	num_copies = db->push_result(server_reply, client_id);
+	num_copies = db->push_result(&server_reply, client_id);
 	db->print_htable();
 	if (num_copies == nmr) { 
-		ret = vote(db->get_result(server_reply->
+		ret = vote(db->get_result(server_reply.
 			service, client_id), result);
 		if (ret >= 0) {
 			/* Replace the data frame with the
@@ -232,7 +232,8 @@ void Broker::get_response(uint32_t dealer_index,
 		}
 		
 		/* Deleting service request */
-		db->delete_request(server_reply->service, client_id);
+		std::cout << server_reply.service << std::endl;
+		db->delete_request(server_reply.service, client_id);
 	}
 	
 	
