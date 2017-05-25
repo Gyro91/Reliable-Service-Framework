@@ -1,4 +1,12 @@
 *.o
+broker
+client
+depl_unit
+server
+!include/*
+!src/*
+src/*/*.o
+
 # Executables
 *.exe
 *.out
@@ -9,7 +17,4 @@
 *.project
 *.workspace
 # Specific binaries
-broker
-client
-depl_unit
-server
+
