@@ -61,7 +61,7 @@ int32_t ServiceDatabase::find_registration(service_type_t service)
  */
 
 uint16_t ServiceDatabase::push_registration(registration_module *reg_mod, 
-	uint16_t dealer_socket, bool &ready)
+	uint16_t &dealer_socket, bool &ready)
 {
 	const service_type_t service_type = reg_mod->service;
 	std::unordered_map<service_type_t, service_record, 
@@ -80,7 +80,7 @@ uint16_t ServiceDatabase::push_registration(registration_module *reg_mod,
 		next_dealer_skt_index++;
 		services_db[service_type] = record;
 
-		return dealer_socket;
+		return dealer_socket++;
 		/* Obviously not equal to nmr */
 		return REG_OK;
 	} else {

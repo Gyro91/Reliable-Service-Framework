@@ -68,6 +68,55 @@ void get_arg(int32_t argc, char_t *argv[], uint8_t &num_cp_server,
 }
 
 /**
+ * @brief Retrieves the option passed to the program
+ * @param argc Number of options passed
+ * @param argv Pointer to the options passed
+ * @param service Where to store the number of service to be deployed
+ * @param num_options Number of options expected
+ * @return None
+ */
+
+void get_arg(int32_t argc, char_t *argv[], service_type_t &service, char_t num_options)
+{
+	char_t c;
+	uint8_t cnt_options = 0;
+
+	if (argv[optind] == NULL || argv[optind + 1] == NULL) {
+		fprintf(stderr, "Mandatory argument missing!\n");
+		exit(EXIT_FAILURE);
+	}
+	while ((c = getopt(argc, argv, "s:n:")) != -1) {
+
+		cnt_options++;
+
+		switch (c) {			
+		case 's':
+			service = (service_type_t) atoi(optarg);
+			break;
+		case '?':
+			if (optopt == 't')
+				fprintf (stderr, "Option -%c requires "
+					"an argument.\n", optopt);
+			else if (isprint(optopt))
+				fprintf(stderr, "Unknown option -%c.\n",
+						optopt);
+			else
+				fprintf(stderr, "Unknown option character\n");
+			exit(EXIT_FAILURE);
+		default:
+			exit(EXIT_FAILURE);
+		}
+	}
+
+	if (cnt_options != num_options) {
+		fprintf (stderr, "The number of options must be: %d\n", 
+			num_options);
+		exit(EXIT_FAILURE);
+	}
+
+}
+
+/**
  * @brief Adds a socket to the actual context
  * @param ctx Pointer to the actual context
  * @param addr Address of the socket

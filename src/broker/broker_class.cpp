@@ -216,18 +216,14 @@ void Broker::get_response(uint32_t dealer_index,
 		(dealer_in[DATA_FRAME].data());
 	
 	num_copies = db->push_result(server_reply, client_id);
+	db->print_htable();
 	if (num_copies == nmr) { 
-		std::vector<int32_t> res = db->get_result(server_reply->
-			service, client_id); 
-			for (uint32_t i = 0; i < res.size(); i++)
-				std::cout << " " << res[i] << " " << std::endl;
-		ret = vote(res, result);
-		
+		ret = vote(db->get_result(server_reply->
+			service, client_id), result);
 		if (ret >= 0) {
 			/* Replace the data frame with the
 			 * one obtained from the voter.
 			 */
-			std::cout << "Result " << result << std::endl;
 			response.service_status = SERVICE_AVAILABLE;
 			response.result = result;
 			dealer_in[DATA_FRAME].rebuild((void*)&response, 
@@ -239,7 +235,7 @@ void Broker::get_response(uint32_t dealer_index,
 		db->delete_request(server_reply->service, client_id);
 	}
 	
-	db->print_htable();
+	
 }
 
 /**

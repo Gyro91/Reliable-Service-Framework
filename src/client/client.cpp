@@ -8,6 +8,7 @@
 #include <iostream>
 #include <zmq.hpp>
 #include "../../include/rs_api.hpp"
+#include "../../include/util.hpp"
 #include "../../include/communication.hpp"
 
 
@@ -16,16 +17,20 @@ int32_t main(int32_t argc, char_t* argv[])
 {	
     	bool ret;
         int32_t result;
+	service_type_t service;
         request_module rm;
    	zmq::context_t context(1);
    	zmq::socket_t socket(context, ZMQ_REQ);
-
+	
+	/* Parsing the arguments */
+	get_arg(argc, argv, service, 1);
+	
    	std::cout << "Connecting to the server…" << std::endl;
 	socket.connect("tcp://localhost:5559");
 
-	rm.service = INCREMENT;
+	rm.service = service;
 	rm.parameter = 2;
-	for (uint8_t i = 0; i < 5; i++) {
+	for (uint8_t i = 0; i < 2; i++) {
                 ret = request_service(rm, &socket, result);
                 if (ret) {
                         std::cout << "Happy:)" << std::endl;
