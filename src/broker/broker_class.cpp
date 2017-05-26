@@ -66,10 +66,10 @@ Broker::Broker(uint8_t nmr, uint16_t port_router, uint16_t port_reg)
 
 Broker::~Broker()
 {
-	delete context;
 	delete router;
 	delete reg;
 	delete db;
+	delete context;
 }
 
 /**
