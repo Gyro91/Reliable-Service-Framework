@@ -14,7 +14,7 @@
 #include "../../include/communication.hpp"
 
 /**
- * @brief Retrieves the option passed to the program
+ * @brief Retrieves the option passed to the client program
  * @param argc Number of options passed
  * @param argv Pointer to the options passed
  * @param num_cp_server Where to store the number of copies of a server
@@ -68,7 +68,7 @@ void get_arg(int32_t argc, char_t *argv[], uint8_t &num_cp_server,
 }
 
 /**
- * @brief Retrieves the option passed to the program
+ * @brief Retrieves the option passed to the server program
  * @param argc Number of options passed
  * @param argv Pointer to the options passed
  * @param service Where to store the number of service to be deployed
@@ -76,7 +76,8 @@ void get_arg(int32_t argc, char_t *argv[], uint8_t &num_cp_server,
  * @return None
  */
 
-void get_arg(int32_t argc, char_t *argv[], service_type_t &service, char_t num_options)
+void get_arg(int32_t argc, char_t *argv[], service_type_t &service, 
+	char_t num_options)
 {
 	char_t c;
 	uint8_t cnt_options = 0;
@@ -177,12 +178,13 @@ void send_multi_msg(zmq::socket_t *skt, std::vector<zmq::message_t> &msg)
 	skt->send(tmp, 0);
 }
 
-/*
+ 
+/**
  * @brief It deploys the server copies for the specified service
- * @param service It is the server service
- * @param list_server_pid Array of server pid
+ * @param service service It is the server service
+ * @param num_copy_server list_server_pid Array of server pid
+ * @param list_server_pid list of the servers PIDs
  * @param status Variable to monitor children
- * @return 
  */
 
 void deployment(uint8_t service, uint8_t num_copy_server, 

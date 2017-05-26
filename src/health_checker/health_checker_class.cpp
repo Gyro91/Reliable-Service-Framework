@@ -7,11 +7,10 @@
 #include "health_checker_class.hpp"
 #include "../../include/communication.hpp";
 
-HealthCheker::HealthCheker(pid_t srv_pid, std::string srv_address, 
-	uint16_t srv_port, uint8_t hb_liveness = 3, int64_t hb_interval = 1000)
+HealthCheker::HealthCheker(pid_t srv_pid, uint16_t srv_port, 
+	uint8_t hb_liveness = 3, int64_t hb_interval = 1000)
 {
 	this->srv_pid = srv_pid;
-	this->srv_address = srv_address;
 	this->srv_port = srv_port;
 	this->hb_liveness = hb_liveness;
 	this->hb_interval = hb_interval;

@@ -17,7 +17,6 @@ private:
 	
 	/* Server information */
 	pid_t srv_pid;
-	std::string srv_address;
 	uint16_t srv_port;
 	/* Heartbeat liveness */
 	uint8_t hb_liveness;
@@ -25,8 +24,8 @@ private:
 	int64_t hb_interval;
 	
 public:
-	HealthCheker(pid_t srv_pid, std::string srv_address, uint16_t srv_port,
-		uint8_t hb_liveness = 3, int64_t hb_interval = 1000);
+	HealthCheker(pid_t srv_pid, uint16_t srv_port, uint8_t hb_liveness, 
+		int64_t hb_interval);
 	void step();
 	~HealthCheker();
 }
