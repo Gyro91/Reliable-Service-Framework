@@ -16,6 +16,7 @@
 #define DEALER_START_PORT 6000
 #define MAX_LENGTH_STRING_PORT 6
 
+#define NUM_FRAMES 3
 #define ID_FRAME 0
 #define EMPTY_FRAME 1
 #define DATA_FRAME 2
@@ -25,6 +26,7 @@
 /**
  * @brief      client request module for the service
  */
+ 
 struct request_module {
 	service_type_t service;
 	int32_t parameter;
@@ -33,6 +35,7 @@ struct request_module {
 /**
  * @brief      It's the service status
  */
+ 
 enum service_status_t {
 	SERVICE_AVAILABLE, SERVICE_NOT_AVAILABLE, SERVICE_NOT_RELIABLE
 };
@@ -40,6 +43,7 @@ enum service_status_t {
 /**
  * @brief      broker response module for the service
  */
+ 
 struct response_module {
 	service_status_t service_status;
 	int32_t result;
@@ -50,6 +54,7 @@ struct response_module {
  * @file communication.hpp
  * @brief data response from a server
  */
+ 
 struct server_reply_t {
 	int32_t result;
 	service_type_t service;

@@ -166,6 +166,7 @@ void send_multi_msg(zmq::socket_t *skt, std::vector<zmq::message_t> &msg)
 {
 	uint8_t i;
 	zmq::message_t tmp;
+	
 	for (i = 0; i < msg.size() - 1; i++) {
 		tmp.rebuild(msg[i].data(), msg[i].size());
 		skt->send(tmp, ZMQ_SNDMORE);
@@ -175,6 +176,7 @@ void send_multi_msg(zmq::socket_t *skt, std::vector<zmq::message_t> &msg)
 	tmp.rebuild(msg[i].data(), msg[i].size());
 	skt->send(tmp, 0);
 }
+
 /*
  * @brief It deploys the server copies for the specified service
  * @param service It is the server service

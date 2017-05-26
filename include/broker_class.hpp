@@ -48,12 +48,11 @@ private:
 	/* Function for adding a dealer socket */
 	void add_dealer(uint16_t dealer_port);
 	/* Function to get a request from the client */
-	void get_request(std::vector<zmq::message_t> &router_in);
+	void get_request();
 	/* Function to get a registration from the server */
 	void get_registration();
 	/* Function to get a service response from a server */
-	void get_response(uint32_t dealer_index, 
-		std::vector<zmq::message_t> &dealer_in);
+	void get_response(uint32_t dealer_index);
 public:
 	Broker(uint8_t nmr, uint16_t port_router, uint16_t port_reg);
 	void step();

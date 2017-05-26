@@ -127,7 +127,7 @@ void ServiceDatabase::delete_request(service_type_t service,
 	std::unordered_map<service_type_t, service_record, 
 		service_type_hash>::iterator i = 
 		services_db.find(service);
-	std::cout << service << std::endl;
+	
 	if (i == services_db.end()) {
 		std::cerr << "Service not found" << std::endl;
 		exit(-1);
