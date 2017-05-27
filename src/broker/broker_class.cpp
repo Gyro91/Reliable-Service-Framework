@@ -101,6 +101,7 @@ void Broker::get_request()
 	request_module request;
 	response_module response;
 	request_record_t request_record;
+	service_module sm;
 	std::vector<zmq::message_t> buffer_in(NUM_FRAMES);
 
 	/* Receive multiple messages,
@@ -126,8 +127,10 @@ void Broker::get_request()
 
 	} else {
 		/* Service available */
-		buffer_in[DATA_FRAME].rebuild((void*) &request.parameter,
-			sizeof(request.parameter));
+		sm.heartbeat = false;
+		sm.parameter = request.parameter;
+		buffer_in[DATA_FRAME].rebuild((void*) &sm,
+			sizeof(service_module));
 		/* Forwarding the parameter */
 		for (uint8_t i = 0; i < nmr; i++)
 			send_multi_msg(dealer[ret], buffer_in);
@@ -210,31 +213,35 @@ void Broker::get_response(uint32_t dealer_index)
 		}
 	}
 	
-	server_reply = *(static_cast<server_reply_t *> 
-		(buffer_in[DATA_FRAME].data()));
-	
-	num_copies = db->push_result(&server_reply, client_id);
-	db->print_htable();
-	if (num_copies == nmr) { 
-		ret = vote(db->get_result(server_reply.
-			service, client_id), result);
-		if (ret >= 0) {
-			/* Replace the data frame with the
-			 * one obtained from the voter.
-			 */
-			response.service_status = SERVICE_AVAILABLE;
-			response.result = result;
-			buffer_in[DATA_FRAME].rebuild((void*)&response, 
+	if (server_reply.id == NO_PONG) {
+		std::cout << "Pong from Server" << (int32_t) server_reply.id <<
+		std::endl;
+	} else {
+		/* It is the result of a requested service */
+		server_reply = *(static_cast<server_reply_t*>
+			(buffer_in[DATA_FRAME].data()));
+
+		num_copies = db->push_result(&server_reply, client_id);
+		db->print_htable();
+		if(num_copies == nmr) {
+			ret = vote(db->get_result(server_reply.service, 
+				client_id), result);
+			if(ret >= 0) {
+				/* Replace the data frame with the
+				 * one obtained from the voter.
+				 */
+				response.service_status = SERVICE_AVAILABLE;
+				response.result = result;
+				buffer_in[DATA_FRAME].rebuild((void*)&response, 
 				sizeof(response_module));
-			send_multi_msg(router, buffer_in);
+				send_multi_msg(router, buffer_in);
+			}
+
+			/* Deleting service request */
+			std::cout << server_reply.service << std::endl;
+			db->delete_request(server_reply.service, client_id);
 		}
-		
-		/* Deleting service request */
-		std::cout << server_reply.service << std::endl;
-		db->delete_request(server_reply.service, client_id);
 	}
-	
-	
 }
 
 /**
@@ -242,24 +249,36 @@ void Broker::get_response(uint32_t dealer_index)
  */
 
 void Broker::step()
-{		
+{	
+	bool timeout;
+	
 	for (;;) {
 
-		zmq::poll(items, -1);
-		std::cout << "Waking up" << std::endl;
+		zmq::poll(items, HEARTBEAT_INTERVAL);
+		timeout = true;
 		
 		/* Check for a registration request */
-		if (items[REG_POLL_INDEX].revents & ZMQ_POLLIN) 
+		if (items[REG_POLL_INDEX].revents & ZMQ_POLLIN) {
 			get_registration();
-		
+			timeout = false;
+		}
 		/* Check for messages on the ROUTER socket */
-		if (items[ROUTER_POLL_INDEX].revents & ZMQ_POLLIN) 
+		else if (items[ROUTER_POLL_INDEX].revents & ZMQ_POLLIN) {
 			get_request();
-			
-		/* Check for messages on the DEALER sockets */
-		for (uint32_t i = 0; i < dealer.size(); i++) {
-			if (items[i + DEALER_POLL_INDEX].revents & ZMQ_POLLIN) 
-				get_response(i);
+			timeout = false;
+		} 
+		else {	
+			/* Check for messages on the DEALER sockets */
+			for (uint32_t i = 0; i < dealer.size(); i++) 
+				if (items[i + DEALER_POLL_INDEX].revents & 
+					ZMQ_POLLIN) { 
+					get_response(i);
+					timeout = false;
+				}			
+		}
+		
+		if (timeout) {
+			std::cout << "Heartbeat" << std::endl;
 		}
 	}
 }

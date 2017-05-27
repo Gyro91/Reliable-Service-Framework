@@ -23,6 +23,9 @@
 
 #define ENVELOPE 3
 
+#define HEARTBEAT_INTERVAL 1000
+#define NO_PONG -1 
+
 /**
  * @brief      client request module for the service
  */
@@ -49,6 +52,16 @@ struct response_module {
 	int32_t result;
 };
 
+/*
+ * @brief      Service module that the broker sends to a server for a service
+ */
+ 
+struct service_module {
+	bool heartbeat;	 /* If true it is a ping, otherwise it's a service 
+			  * request */
+	int32_t parameter;
+};
+
 /**
  * @class server reply
  * @file communication.hpp
@@ -58,6 +71,9 @@ struct response_module {
 struct server_reply_t {
 	int32_t result;
 	service_type_t service;
+	uint8_t id; /* If id > 0, it is a an heartbeat and the id field is 
+		     * the copy id, otherwise it is -1 and in this response 
+		     * there is the service result */
 };
 
 #endif /* INCLUDE_COMMUNICATION_HPP_ */
