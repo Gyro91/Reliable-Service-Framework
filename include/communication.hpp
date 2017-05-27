@@ -20,7 +20,7 @@
 #define ID_FRAME 0
 #define EMPTY_FRAME 1
 #define DATA_FRAME 2
-
+#define LENGTH_ID_FRAME 5
 #define ENVELOPE 3
 
 #define HEARTBEAT_INTERVAL 1000

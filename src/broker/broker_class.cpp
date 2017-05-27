@@ -327,9 +327,9 @@ void Broker::ping_servers()
 {
 	service_module sm;
 	std::vector<zmq::message_t> buffer_in(NUM_FRAMES);
-	char_t id_ping[5];
+	char_t id_ping[LENGTH_ID_FRAME];
 	
-	memset(&id_ping, '\0',5);
+	memset(&id_ping, '\0', LENGTH_ID_FRAME);
 	
 	/* In order to reuse the same dealer port for receiving pong and
 	 * results we have to emulate the router-dealer-rep pattern */
@@ -341,7 +341,6 @@ void Broker::ping_servers()
 			sizeof(service_module));
 		for(uint8_t j = 0; j < nmr; j++)
 			send_multi_msg(dealer[i], buffer_in);
-		
 	}
 }
 

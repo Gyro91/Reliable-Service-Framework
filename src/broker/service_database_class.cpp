@@ -81,15 +81,16 @@ uint16_t ServiceDatabase::push_registration(registration_module *reg_mod,
 		services_db[service_type] = record;
 
 		return dealer_socket++;
-		/* Obviously not equal to nmr */
-		return REG_OK;
 	} else {
-		(i->second).num_copies_registered++;
-		(i->second).num_copies_reliable++;
-
-		if ((i->second).num_copies_registered == nmr)
+		
+		if ((i->second).num_copies_registered < nmr) {
+			(i->second).num_copies_registered++;
+			(i->second).num_copies_reliable++;
+		} else return 0;
+			
+		if ((i->second).num_copies_registered == nmr) 
 			ready = true;
-
+			
 		return ((i->second).dealer_socket);
 	}
 
