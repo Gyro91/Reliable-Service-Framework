@@ -71,7 +71,7 @@ struct service_module {
 struct server_reply_t {
 	int32_t result;
 	service_type_t service;
-	uint8_t id; /* If id > 0, it is a an heartbeat and the id field is 
+	int8_t id; /* If id > 0, it is a an heartbeat and the id field is 
 		     * the copy id, otherwise it is -1 and in this response 
 		     * there is the service result */
 };

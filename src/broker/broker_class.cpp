@@ -132,7 +132,7 @@ void Broker::get_request()
 		buffer_in[DATA_FRAME].rebuild((void*) &sm,
 			sizeof(service_module));
 		/* Forwarding the parameter */
-		for (uint8_t i = 0; i < nmr; i++)
+		for (uint8_t j = 0; j < nmr; j++)
 			send_multi_msg(dealer[ret], buffer_in);
 		/* Saving the request in the db */
 		db->push_request(&request_record, request.service);
@@ -171,11 +171,15 @@ void Broker::get_registration()
 			db->push_registration(&rm,
 				available_dealer_port, ready);
 			/* If all the copies are registered */
-			if (ready) 
+			if (ready) {
+				/* Make the service available */
+				available_services.push_back(rm.service);
+				/* Add a dealer port */
 				add_dealer(ret);
-
+			}
 			db->print_htable();
-			/* Sending back the result */
+			print_available_services();
+			/* Sending back the dealer port */
 			zmq::message_t reply(sizeof(ret));
 			memcpy(reply.data(), 
 				(void *) &ret, sizeof(ret));
@@ -196,6 +200,7 @@ void Broker::get_registration()
 void Broker::get_response(uint32_t dealer_index)
 {	
 	int32_t num_copies, ret, result;
+	uint32_t i = 0;
 	server_reply_t server_reply;
 	response_module response;
 	zmq::message_t message;
@@ -203,26 +208,37 @@ void Broker::get_response(uint32_t dealer_index)
 	std::vector<zmq::message_t> buffer_in(NUM_FRAMES);
 
 	/* Receiving all the messages */
-	for (uint8_t i = 0; i < ENVELOPE; i++) {
+/*	for(;;) {
+		dealer[dealer_index]->recv(&buffer_in[i]);
+		size_t more_size = sizeof(more);
+		router->getsockopt(ZMQ_RCVMORE, &more, &more_size);
+		if (i == ID_FRAME) {
+			uint8_t* p = (uint8_t*)buffer_in[i].data();
+			p++;
+			client_id = *((uint32_t*)p);
+		}
+		i++;
+		if (!more)
+			break;
+	}
+	std::cout << i << std::endl;*/
+	for (i = 0; i < ENVELOPE; i++) {
 		dealer[dealer_index]->recv(&buffer_in[i]);
 		if (i == ID_FRAME) {
-			/* We get the client id */
 			uint8_t *p = (uint8_t *) buffer_in[i].data();
 			p++;
 			client_id = *((uint32_t *) p);
 		}
 	}
 	
-	if (server_reply.id == NO_PONG) {
-		std::cout << "Pong from Server" << (int32_t) server_reply.id <<
-		std::endl;
-	} else {
-		/* It is the result of a requested service */
-		server_reply = *(static_cast<server_reply_t*>
+	server_reply = *(static_cast<server_reply_t*>
 			(buffer_in[DATA_FRAME].data()));
-
+			
+	if (server_reply.id >= 0) {
+		std::cout << "Pong from Server" << (int32_t) server_reply.id <<
+		" service " << server_reply.service << std::endl;
+	} else {
 		num_copies = db->push_result(&server_reply, client_id);
-		db->print_htable();
 		if(num_copies == nmr) {
 			ret = vote(db->get_result(server_reply.service, 
 				client_id), result);
@@ -238,7 +254,6 @@ void Broker::get_response(uint32_t dealer_index)
 			}
 
 			/* Deleting service request */
-			std::cout << server_reply.service << std::endl;
 			db->delete_request(server_reply.service, client_id);
 		}
 	}
@@ -254,7 +269,7 @@ void Broker::step()
 	
 	for (;;) {
 
-		zmq::poll(items, HEARTBEAT_INTERVAL);
+		zmq::poll(items, HEARTBEAT_INTERVAL * 2);
 		timeout = true;
 		
 		/* Check for a registration request */
@@ -279,6 +294,7 @@ void Broker::step()
 		
 		if (timeout) {
 			std::cout << "Heartbeat" << std::endl;
+			ping_servers();
 		}
 	}
 }
@@ -301,4 +317,41 @@ uint8_t Broker::vote(std::vector<int32_t> values, int32_t &result)
 	}
 	else
 		return -1;
+}
+
+/**
+ * @brief It sends a ping to all the servers
+ */
+ 
+void Broker::ping_servers()
+{
+	service_module sm;
+	std::vector<zmq::message_t> buffer_in(NUM_FRAMES);
+	char_t id_ping[5];
+	
+	memset(&id_ping, '\0',5);
+	
+	/* In order to reuse the same dealer port for receiving pong and
+	 * results we have to emulate the router-dealer-rep pattern */
+	sm.heartbeat = true;
+	for (uint32_t i = 0; i < dealer.size(); i++) {
+		buffer_in[ID_FRAME].rebuild((void*) &id_ping, 
+			sizeof(id_ping));
+		buffer_in[DATA_FRAME].rebuild((void*) &sm, 
+			sizeof(service_module));
+		for(uint8_t j = 0; j < nmr; j++)
+			send_multi_msg(dealer[i], buffer_in);
+		
+	}
+}
+
+/**
+ * @brief It prints all the available services 
+ */
+ 
+void Broker::print_available_services()
+{	
+	for (uint32_t i = 0; i < available_services.size(); i++)
+		std::cout << "Service " << available_services[i] << " " << 
+		std::endl;
 }

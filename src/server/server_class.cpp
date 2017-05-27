@@ -97,7 +97,8 @@ void Server::step()
 				/* Sending back the result */
 				deliver_service(val_elab);
 			} else {
-				std::cout << "Ping from Broker" << std::endl;
+				std::cout << "Server " << (int32_t) id << 
+				": Ping from Broker" << std::endl;
 				pong_broker();
 			}
 		}
@@ -119,10 +120,12 @@ bool Server::receive_request(int32_t* val)
 	
 	reply->recv(&msg);
 	sm = *(static_cast<service_module *> (msg.data()));
-	*val = sm.parameter;
 	
-	std::cout << "Server " << (int32_t)id << " received: " <<
-	*val << std::endl;
+	if (sm.heartbeat == false) {
+		*val = sm.parameter;
+		std::cout << "Server " << (int32_t)id << " received: " <<
+		*val << std::endl;
+	}
 	
 	return sm.heartbeat;
 }

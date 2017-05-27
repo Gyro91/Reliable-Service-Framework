@@ -42,9 +42,13 @@ private:
 	zmq::socket_t *router;
 	/* Services Database */
 	ServiceDatabase *db;
+	/* Vector of available services */
+	std::vector<service_type_t> available_services;
 	
 	/* Function for voting */
 	uint8_t vote(std::vector<int32_t> values, int32_t &result);
+	/* Function for sending a ping to all the servers */
+	void ping_servers();
 	/* Function for adding a dealer socket */
 	void add_dealer(uint16_t dealer_port);
 	/* Function to get a request from the client */
@@ -53,6 +57,8 @@ private:
 	void get_registration();
 	/* Function to get a service response from a server */
 	void get_response(uint32_t dealer_index);
+	/* Function for printing the available services */
+	void print_available_services();
 public:
 	Broker(uint8_t nmr, uint16_t port_router, uint16_t port_reg);
 	void step();
