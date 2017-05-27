@@ -4,16 +4,16 @@
 
 #include <iostream>
 #include <stdio.h>
-#include "health_checker_class.hpp"
-#include "../../include/communication.hpp";
+#include "../../include/health_checker_class.hpp"
+#include "../../include/util.hpp"
+#include "../../include/communication.hpp"
 
-HealthCheker::HealthCheker(pid_t srv_pid, uint16_t srv_port, 
-	uint8_t hb_liveness = 3, int64_t hb_interval = 1000)
+HealthCheker::HealthCheker(pid_t srv_pid, uint16_t srv_port)
 {
+	std::string srv_address("localhost");
 	this->srv_pid = srv_pid;
 	this->srv_port = srv_port;
-	this->hb_liveness = hb_liveness;
-	this->hb_interval = hb_interval;
+	this->srv_expiry = SRV_OK;
 	
 	/* Allocating ZMQ context */
 	try {
@@ -24,15 +24,49 @@ HealthCheker::HealthCheker(pid_t srv_pid, uint16_t srv_port,
 	}
 	
 	/* Add the dealer socket */
-	dealer = add_socket(ctx, srv_address, srv_port, ZMQ_DEALER, CONNECT);
+	hb_skt = add_socket(ctx, srv_address, srv_port, ZMQ_REQ, CONNECT);
 	
 	/* Add the socket to the poll set */
-	item = {static_cast<void*>(*dealer), 0, ZMQ_POLLIN, 0};
+	item = {static_cast<void*>(*hb_skt), 0, ZMQ_POLLIN, 0};
 }
 
 HealthCheker::~HealthCheker()
 {
-	delete dealer;
+	delete hb_skt;
 	delete ctx;
+}
+
+/**
+ * @brief Body of the health cheker process
+ */
+ 
+void HealthCheker::step()
+{
+	/* Message buffer to receive pong from the server */
+	zmq::message_t buffer;
+	
+	/* Send the initial ping */
+	hb_skt->send(buffer);
+	buffer.rebuild();
+	
+	for (;;) {
+		zmq::poll(&item, 1, HEARTBEAT_INTERVALL);
+		
+		srv_expiry = SRV_TIMEOUT;
+		
+		if (item.revents & ZMQ_POLLIN) {
+			hb_skt->recv(&buffer);
+			srv_expiry = SRV_OK;
+			
+			/* Send the next ping */
+			hb_skt->send(buffer);
+			buffer.rebuild();
+		}
+		
+		if (srv_expiry == SRV_TIMEOUT) {
+			std::cout << "Server Timeout!!!" << std::endl;
+		}
+			
+	}
 }
 

@@ -3,6 +3,7 @@ broker
 client
 depl_unit
 server
+health_checker
 !include/*
 !src/*
 src/*/*.o
