@@ -11,9 +11,8 @@
 #include "service.hpp"
 #include "rs_api.hpp"
 
-#define REG_FAIL -1
-#define REG_OK -2
-
+#define SERVICE_NOT_FOUND -1
+#define REG_FAIL 0
 
 /**
  * @class request_record_t
@@ -46,6 +45,10 @@ struct service_record {
 	uint16_t dealer_skt_index;
 	/* Vector of active requests from the clients */
 	std::vector<request_record_t> request_records;
+	/* Vectors that points out if in the old or current timeout it was 
+	 * received a pong from a the server copies */
+	std::vector<bool> old_pong;
+	std::vector<bool> new_pong;
 };
 
 /* std::unordered_map requires a hash functor in order to do anything.  
@@ -83,6 +86,9 @@ public:
 	void push_request(request_record_t *request_record, 
 		service_type_t service);
 	void delete_request(service_type_t service, uint32_t client_id);
+	void register_pong(uint8_t id_copy, service_type_t service);
+	void check_pong(std::vector<service_type_t> available_services);
+	uint8_t get_reliable_copies(service_type_t service);
 	void print_htable();
 
 	ServiceDatabase(uint8_t nmr);

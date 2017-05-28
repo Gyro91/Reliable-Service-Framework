@@ -39,6 +39,6 @@ int32_t main(int32_t argc, char_t* argv[])
 			<< std::endl;
 	deployment(service, num_copy_server, list_server_pid, &status);
 
-
+	
 	return EXIT_SUCCESS;
 }

@@ -195,7 +195,10 @@ void deployment(uint8_t service, uint8_t num_copy_server,
 	for (;;) {
 		if (i == num_copy_server) {
 			std::cout << "#Deployment_Unit: "
-				"Server copies deployed" << std::endl;	
+				"Server copies deployed" << std::endl;
+			for (i = 0; i < num_copy_server; i++)
+				std:: cout << "Pid " << 
+				list_server_pid[i] << std::endl;
 			/* Wait on the children */
 			wait(&status);
 			std::cerr << "Wake up!Something happened to "

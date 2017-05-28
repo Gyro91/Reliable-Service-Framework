@@ -208,20 +208,7 @@ void Broker::get_response(uint32_t dealer_index)
 	std::vector<zmq::message_t> buffer_in(NUM_FRAMES);
 
 	/* Receiving all the messages */
-/*	for(;;) {
-		dealer[dealer_index]->recv(&buffer_in[i]);
-		size_t more_size = sizeof(more);
-		router->getsockopt(ZMQ_RCVMORE, &more, &more_size);
-		if (i == ID_FRAME) {
-			uint8_t* p = (uint8_t*)buffer_in[i].data();
-			p++;
-			client_id = *((uint32_t*)p);
-		}
-		i++;
-		if (!more)
-			break;
-	}
-	std::cout << i << std::endl;*/
+
 	for (i = 0; i < ENVELOPE; i++) {
 		dealer[dealer_index]->recv(&buffer_in[i]);
 		if (i == ID_FRAME) {
@@ -237,6 +224,7 @@ void Broker::get_response(uint32_t dealer_index)
 	if (server_reply.id >= 0) {
 		std::cout << "Pong from Server" << (int32_t) server_reply.id <<
 		" service " << server_reply.service << std::endl;
+		db->register_pong(server_reply.id, server_reply.service);
 	} else {
 		num_copies = db->push_result(&server_reply, client_id);
 		if(num_copies == nmr) {
@@ -265,7 +253,7 @@ void Broker::get_response(uint32_t dealer_index)
 
 void Broker::step()
 {	
-	bool timeout;
+	bool timeout, first_time = true;
 	
 	for (;;) {
 
@@ -294,7 +282,15 @@ void Broker::step()
 		
 		if (timeout) {
 			std::cout << "Heartbeat" << std::endl;
-			ping_servers();
+			
+			db->print_htable();
+			if (available_services.size() > 0) {
+				if (first_time) 
+					first_time = false;
+				else 
+					db->check_pong(available_services);
+				ping_servers();
+			}
 		}
 	}
 }
@@ -326,20 +322,25 @@ uint8_t Broker::vote(std::vector<int32_t> values, int32_t &result)
 void Broker::ping_servers()
 {
 	service_module sm;
+	uint8_t num_copies_reliable;
 	std::vector<zmq::message_t> buffer_in(NUM_FRAMES);
 	char_t id_ping[LENGTH_ID_FRAME];
 	
-	memset(&id_ping, '\0', LENGTH_ID_FRAME);
+	id_ping[0] = 0;
+	memset((id_ping + 1), 'a', LENGTH_ID_FRAME - 1);
 	
 	/* In order to reuse the same dealer port for receiving pong and
 	 * results we have to emulate the router-dealer-rep pattern */
 	sm.heartbeat = true;
 	for (uint32_t i = 0; i < dealer.size(); i++) {
-		buffer_in[ID_FRAME].rebuild((void*) &id_ping, 
-			sizeof(id_ping));
-		buffer_in[DATA_FRAME].rebuild((void*) &sm, 
+		buffer_in[ID_FRAME].rebuild((void*) &id_ping[0], sizeof(id_ping));
+		buffer_in[EMPTY_FRAME].rebuild((void*) "", 0);
+		buffer_in[DATA_FRAME].rebuild((void*) &sm,
 			sizeof(service_module));
-		for(uint8_t j = 0; j < nmr; j++)
+		num_copies_reliable = 
+			db->get_reliable_copies(available_services[i]);
+		
+		for(uint8_t j = 0; j < num_copies_reliable; j++)
 			send_multi_msg(dealer[i], buffer_in);
 	}
 }

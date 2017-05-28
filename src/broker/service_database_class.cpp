@@ -5,6 +5,7 @@
 
 #include <iostream>
 #include <stdlib.h>
+#include <stdlib.h>
 #include "../../include/service_database_class.hpp"
 
 /**
@@ -44,7 +45,7 @@ int32_t ServiceDatabase::find_registration(service_type_t service)
 	
 	if (i == services_db.end()) {
 		std::cout << service << " is not present" << std::endl;	
-		return -1;
+		return SERVICE_NOT_FOUND;
 	} 
 		
 	return (i->second).dealer_skt_index;
@@ -77,16 +78,22 @@ uint16_t ServiceDatabase::push_registration(registration_module *reg_mod,
 		record.num_copies_reliable = 1;
 		record.dealer_skt_index = next_dealer_skt_index;
 		record.dealer_socket = dealer_socket;
-		next_dealer_skt_index++;
+		
+		for (uint8_t j = 0; j < nmr; j++) {
+			record.old_pong.push_back(true);
+			record.new_pong.push_back(false);
+		}
 		services_db[service_type] = record;
-
+		
+		next_dealer_skt_index++;
+		
 		return dealer_socket++;
 	} else {
 		
 		if ((i->second).num_copies_registered < nmr) {
 			(i->second).num_copies_registered++;
 			(i->second).num_copies_reliable++;
-		} else return 0;
+		} else return REG_FAIL;
 			
 		if ((i->second).num_copies_registered == nmr) 
 			ready = true;
@@ -109,8 +116,8 @@ void ServiceDatabase::push_request(request_record_t *request_record,
 		services_db.find(service);
 	
 	if (i == services_db.end()) {
-		std::cerr << "Service not found" << std::endl;
-		exit(-1);
+		std::cerr << "push_request:Service not found" << std::endl;
+		exit(EXIT_FAILURE);
 	}
 	
 	(i->second).request_records.push_back(*request_record);
@@ -130,8 +137,8 @@ void ServiceDatabase::delete_request(service_type_t service,
 		services_db.find(service);
 	
 	if (i == services_db.end()) {
-		std::cerr << "Service not found" << std::endl;
-		exit(-1);
+		std::cerr << "delete_request:Service not found" << std::endl;
+		exit(EXIT_FAILURE);
 	}
 	
 	service_record *record = &i->second;
@@ -157,8 +164,8 @@ int32_t ServiceDatabase::push_result(server_reply_t *server_reply,
 		services_db.find(server_reply->service);
 
 	if (i == services_db.end()) {
-		std::cerr << "Service not found" << std::endl;
-		exit(-1);
+		std::cerr << "push_result:Service not found" << std::endl;
+		exit(EXIT_FAILURE);
 	}
 	
 	service_record *record = &i->second;
@@ -190,8 +197,8 @@ std::vector<int32_t> ServiceDatabase::get_result(service_type_t service,
 		services_db.find(service);
 
 	if (i == services_db.end()) {
-		std::cerr << "Service not found" << std::endl;
-		exit(-1);
+		std::cerr << "get_result:Service not found" << std::endl;
+		exit(EXIT_FAILURE);
 	}
 	
 	service_record *record = &i->second;
@@ -206,6 +213,70 @@ std::vector<int32_t> ServiceDatabase::get_result(service_type_t service,
 }
 
 /**
+ * @brief It registers the pong from the server 
+ * @param id_copy id that identifies the server copy
+ * @param service service type of the server
+ */
+ 
+void ServiceDatabase::register_pong(uint8_t id_copy, service_type_t service)
+{
+	std::unordered_map<service_type_t, service_record, 
+		service_type_hash>::iterator it = 
+		services_db.find(service);
+		
+	if (it == services_db.end()) {
+		std::cerr << "register_pong:Service not found" << std::endl;
+		exit(EXIT_FAILURE);
+	}
+	
+	it->second.new_pong[id_copy] = true;
+}
+
+void ServiceDatabase::check_pong(std::vector<service_type_t> available_services)
+{	
+	uint8_t cnt = 0;
+	std::unordered_map<service_type_t, service_record, 
+		service_type_hash>::iterator it;
+		
+	for (uint32_t i = 0; i < available_services.size(); i++) {
+		it = services_db.find(available_services[i]);
+		for (uint8_t j = 0; j < nmr; j++)
+			if (!it->second.new_pong[j] && 
+			it->second.new_pong[j] != it->second.old_pong[j]) {
+				cnt++;
+				it->second.old_pong[j] = it->second.new_pong[j];
+			}
+			else
+				it->second.new_pong[j] = false;
+		std::cout << (int) cnt << std::endl;			
+		it->second.num_copies_reliable -= cnt;
+		cnt = 0;
+	}
+
+}
+
+/**
+ * @brief Gets the number of reliable copies for the service
+ * @param service service type
+ * @return It returns the number of reliable copies
+ */
+ 
+uint8_t ServiceDatabase::get_reliable_copies(service_type_t service)
+{
+	std::unordered_map<service_type_t, service_record, 
+		service_type_hash>::iterator it = 
+		services_db.find(service);
+		
+	if (it == services_db.end()) {
+		std::cerr << "get_reliable_copies:Service not found" 
+		<< std::endl;
+		exit(EXIT_FAILURE);
+	}
+	
+	return it->second.num_copies_reliable;
+}
+
+/**
  * @brief      It prints all the pair (key, value) in the database
  */
 
@@ -214,7 +285,7 @@ void ServiceDatabase::print_htable()
 	for (auto it : services_db) {
     		std::cout << "Service: " << it.first << " Owner: " 
     		<< it.second.owner << " Copies: " << 
-    		(uint32_t)it.second.num_copies_registered << 
+    		(uint32_t)it.second.num_copies_reliable << 
     		" Socket: " << it.second.dealer_socket <<  std::endl;
 		
 		for (auto it_v : it.second.request_records) {
