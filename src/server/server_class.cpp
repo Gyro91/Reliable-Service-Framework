@@ -92,10 +92,6 @@ void Server::step()
 	items.push_back(item);
 	
 	for (;;) {
-		
-		std::cout << "CIAOCIAOCIAO" << std::endl;
-			pong_health_checker();
-		
 		zmq::poll(items, HEARTBEAT_INTERVAL);
 		
 		/* Check for a service request */
@@ -189,7 +185,7 @@ void Server::pong_health_checker()
 	
 	/* Receive the ping */
 	hc_pong->recv(&msg);
-	msg.rebuild((void*)"Pong", 4);
+	msg.rebuild(EMPTY_MSG, 0);
 	
 	/* Send the pong */
 	hc_pong->send(msg);

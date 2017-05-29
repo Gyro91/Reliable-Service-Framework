@@ -8,7 +8,15 @@
 #include "../../include/util.hpp"
 #include "../../include/communication.hpp"
 
-HealthCheker::HealthCheker(pid_t srv_pid, uint8_t srv_id, uint8_t srv_service, 
+/**
+ * @brief Health checker constructor
+ * @param srv_pid PID of the monitored server process
+ * @param srv_id ID of the monitored service redundant copy
+ * @param srv_service Service provided by yhe monitored server
+ * @param srv_port Port address for the server socket
+ */
+
+HealthChecker::HealthChecker(pid_t srv_pid, uint8_t srv_id, uint8_t srv_service, 
 	uint16_t srv_port)
 {
 	std::string srv_address("localhost");
@@ -34,7 +42,7 @@ HealthCheker::HealthCheker(pid_t srv_pid, uint8_t srv_id, uint8_t srv_service,
 	item = {static_cast<void*>(*hb_skt), 0, ZMQ_POLLIN, 0};
 }
 
-HealthCheker::~HealthCheker()
+HealthChecker::~HealthChecker()
 {
 	delete hb_skt;
 	delete ctx;
@@ -44,11 +52,16 @@ HealthCheker::~HealthCheker()
  * @brief Body of the health cheker process
  */
  
-void HealthCheker::step()
+void HealthChecker::step()
 {
 	/* Message buffer to receive pong from the server */
 	zmq::message_t buffer;
-	bool first_time = true;
+	bool ping_sent;
+	
+	/* Send the first ping */
+	buffer.rebuild((void*)&srv_pid, sizeof(srv_pid));
+	hb_skt->send(buffer);
+	ping_sent = true;
 	
 	for (;;) {
 
@@ -57,21 +70,23 @@ void HealthCheker::step()
 		srv_expiry = SRV_TIMEOUT;
 		
 		if (item.revents & ZMQ_POLLIN) {
-			std::cout << "BELLOFIGO" << std::endl;
+			std::cout << "HC: Received pong from server " << 
+				(uint32_t) srv_id << std::endl;
 			hb_skt->recv(&buffer);
 			srv_expiry = SRV_OK;
 			hb_liveness = HEARTBEAT_LIVENESS;
+			ping_sent = false;
 		}
 		
 		if (srv_expiry == SRV_TIMEOUT) {
-			if (first_time)
-				first_time = false;
-			else
-				std::cout << "Server Timeout!!!" <<
-					(int32_t)hb_liveness << std::endl;
+			std::cout << "Server Timeout!!!" <<
+				(int32_t)hb_liveness << std::endl;
 			/* Send the next ping */
-			buffer.rebuild((void*)&srv_pid, sizeof(srv_pid));
-			hb_skt->send(buffer);
+			if (!ping_sent) {
+				buffer.rebuild(EMPTY_MSG, 0);
+				hb_skt->send(buffer);
+				ping_sent = true;
+			}
 			if (--hb_liveness == 0) {
 				hb_liveness = HEARTBEAT_LIVENESS;
 				std::cout << "Server down... restarting" <<

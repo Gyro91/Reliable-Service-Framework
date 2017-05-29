@@ -13,7 +13,7 @@
 
 int32_t main(int32_t argc, char_t* argv[])
 {	
-	HealthCheker* hb;
+	HealthChecker* hb;
 	pid_t srv_pid;
 	uint16_t srv_port;
 	uint8_t srv_id;
@@ -31,7 +31,7 @@ int32_t main(int32_t argc, char_t* argv[])
 
 	/* Instanciate the health checker */
 	try {
-		hb = new HealthCheker(srv_pid, srv_id, srv_service, srv_port);
+		hb = new HealthChecker(srv_pid, srv_id, srv_service, srv_port);
 	} catch (std::bad_alloc& ba) {
 		std::cerr << "bad_alloc caught: " << ba.what() <<  std::endl;
 		exit(EXIT_FAILURE);

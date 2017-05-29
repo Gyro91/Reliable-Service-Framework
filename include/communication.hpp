@@ -8,7 +8,8 @@
 
 #include "service.hpp"
 
-#define COM_PROTOCOL "tcp://"
+#define TCP_PROTOCOL "tcp://"
+#define IPC_PROTOCOL "ipc://"
 #define LOCALHOST "localhost"
 #define ANY_ADDRESS "*"
 #define BIND 0
@@ -17,6 +18,7 @@
 #define ROUTER_PORT_BROKER 5559
 #define DEALER_START_PORT 6000
 #define MAX_LENGTH_STRING_PORT 6
+#define EMPTY_MSG (void*)""
 
 #define NUM_FRAMES 3
 #define ID_FRAME 0

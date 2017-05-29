@@ -145,7 +145,11 @@ zmq::socket_t* add_socket(zmq::context_t *ctx, std::string addr, uint16_t port,
 	memset(str, '\0', MAX_LENGTH_STRING_PORT);
 	sprintf(str, "%d", port);
 	p.assign(str);
-	conf = (COM_PROTOCOL + addr + ":" + p);
+	
+	if (port != 0)
+		conf = (TCP_PROTOCOL + addr + ":" + p);
+	else
+		conf = (IPC_PROTOCOL + addr);
 	
 	if (dir == BIND)
 		skt->bind(conf.c_str());
@@ -230,12 +234,10 @@ void deployment(uint8_t service, uint8_t num_copy_server,
 			pid_char = pid_str.c_str();
 			id_str = std::to_string(i);
 			id_char = id_str.c_str();
-			std::cout << "PID::: " << pid_char << "ID::: " << id_char
-				<< std::endl;
 			/* Start the health checker process */
 			hc_pid = fork();
 			if (hc_pid == 0) {
-				ret = execl("./health_checker", 
+				ret = execlp("./health_checker", 
 					id_char, &server_service,
 						pid_char, (char_t *)NULL);
 				if (ret == -1) {

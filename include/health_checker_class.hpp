@@ -9,7 +9,7 @@
 #define SRV_OK 0
 #define SRV_TIMEOUT 1
 
-class  HealthCheker {
+class  HealthChecker {
 	
 private:
 	
@@ -29,10 +29,10 @@ private:
 	uint8_t hb_liveness;
 	
 public:
-	HealthCheker(pid_t srv_pid, uint8_t srv_id, uint8_t srv_service, 
+	HealthChecker(pid_t srv_pid, uint8_t srv_id, uint8_t srv_service, 
 		uint16_t srv_port);
 	void step();
-	~HealthCheker();
+	~HealthChecker();
 };
 
 #endif /* INCLUDE_HEALTH_CHECKER_CLASS_HPP_ */
