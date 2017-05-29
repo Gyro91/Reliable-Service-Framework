@@ -24,10 +24,12 @@ private:
 	pid_t srv_pid;
 	uint8_t srv_service;
 	uint16_t srv_port;
-	uint8_t srv_expiry;
 	/* Heartbeat liveness */
 	uint8_t hb_liveness;
 	
+	/* Private function */
+	void context_init();
+	void restart_server();
 public:
 	HealthChecker(pid_t srv_pid, uint8_t srv_id, uint8_t srv_service, 
 		uint16_t srv_port);

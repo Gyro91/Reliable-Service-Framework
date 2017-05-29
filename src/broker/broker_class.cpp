@@ -73,6 +73,54 @@ Broker::~Broker()
 }
 
 /**
+ * @brief      step function
+ */
+
+void Broker::step()
+{	
+	bool timeout, first_time = true;
+	
+	for (;;) {
+
+		zmq::poll(items, HEARTBEAT_INTERVAL * 2);
+		timeout = true;
+		
+		/* Check for a registration request */
+		if (items[REG_POLL_INDEX].revents & ZMQ_POLLIN) {
+			get_registration();
+			timeout = false;
+		}
+		/* Check for messages on the ROUTER socket */
+		else if (items[ROUTER_POLL_INDEX].revents & ZMQ_POLLIN) {
+			get_request();
+			timeout = false;
+		} 
+		else {	
+			/* Check for messages on the DEALER sockets */
+			for (uint32_t i = 0; i < dealer.size(); i++) 
+				if (items[i + DEALER_POLL_INDEX].revents & 
+					ZMQ_POLLIN) { 
+					get_response(i);
+					timeout = false;
+				}			
+		}
+		
+		if (timeout) {
+			std::cout << "Heartbeat" << std::endl;
+			
+			db->print_htable();
+			if (available_services.size() > 0) {
+				if (first_time) 
+					first_time = false;
+				else 
+					db->check_pong(available_services);
+				ping_servers();
+			}
+		}
+	}
+}
+
+/**
  * @brief      Adds a dealer.
  *
  * @param[in]  dealer_port  The dealer port
@@ -243,54 +291,6 @@ void Broker::get_response(uint32_t dealer_index)
 
 			/* Deleting service request */
 			db->delete_request(server_reply.service, client_id);
-		}
-	}
-}
-
-/**
- * @brief      step function
- */
-
-void Broker::step()
-{	
-	bool timeout, first_time = true;
-	
-	for (;;) {
-
-		zmq::poll(items, HEARTBEAT_INTERVAL * 2);
-		timeout = true;
-		
-		/* Check for a registration request */
-		if (items[REG_POLL_INDEX].revents & ZMQ_POLLIN) {
-			get_registration();
-			timeout = false;
-		}
-		/* Check for messages on the ROUTER socket */
-		else if (items[ROUTER_POLL_INDEX].revents & ZMQ_POLLIN) {
-			get_request();
-			timeout = false;
-		} 
-		else {	
-			/* Check for messages on the DEALER sockets */
-			for (uint32_t i = 0; i < dealer.size(); i++) 
-				if (items[i + DEALER_POLL_INDEX].revents & 
-					ZMQ_POLLIN) { 
-					get_response(i);
-					timeout = false;
-				}			
-		}
-		
-		if (timeout) {
-			std::cout << "Heartbeat" << std::endl;
-			
-			db->print_htable();
-			if (available_services.size() > 0) {
-				if (first_time) 
-					first_time = false;
-				else 
-					db->check_pong(available_services);
-				ping_servers();
-			}
 		}
 	}
 }

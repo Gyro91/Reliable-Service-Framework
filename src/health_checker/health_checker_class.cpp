@@ -4,6 +4,8 @@
 
 #include <iostream>
 #include <stdio.h>
+#include <signal.h>
+#include <unistd.h>
 #include "../../include/health_checker_class.hpp"
 #include "../../include/util.hpp"
 #include "../../include/communication.hpp"
@@ -19,28 +21,19 @@
 HealthChecker::HealthChecker(pid_t srv_pid, uint8_t srv_id, uint8_t srv_service, 
 	uint16_t srv_port)
 {
-	std::string srv_address("localhost");
 	this->srv_pid = srv_pid;
 	this->srv_id = srv_id;
 	this->srv_service = srv_service;
 	this->srv_port = srv_port;
-	this->srv_expiry = SRV_OK;
 	this->hb_liveness = HEARTBEAT_LIVENESS;
 	
 	/* Allocating ZMQ context */
-	try {
-		ctx = new zmq::context_t(1);
-	} catch (std::bad_alloc& ba) {
-		std::cerr << "bad_alloc caught: " << ba.what() << std::endl;
-		exit(EXIT_FAILURE);
-	}
-	
-	/* Add the dealer socket */
-	hb_skt = add_socket(ctx, srv_address, srv_port, ZMQ_REQ, CONNECT);
-	
-	/* Add the socket to the poll set */
-	item = {static_cast<void*>(*hb_skt), 0, ZMQ_POLLIN, 0};
+	context_init();
 }
+
+/**
+ * @brief Health checker destructor
+ */
 
 HealthChecker::~HealthChecker()
 {
@@ -56,44 +49,90 @@ void HealthChecker::step()
 {
 	/* Message buffer to receive pong from the server */
 	zmq::message_t buffer;
-	bool ping_sent;
+	bool pong_arrived;
+	bool timeout = false;
 	
 	/* Send the first ping */
 	buffer.rebuild((void*)&srv_pid, sizeof(srv_pid));
 	hb_skt->send(buffer);
-	ping_sent = true;
-	
-	for (;;) {
+	pong_arrived = false;
 
+	for (;;) {
 		zmq::poll(&item, 1, HEARTBEAT_INTERVAL);
 		
-		srv_expiry = SRV_TIMEOUT;
+		timeout = true;
 		
 		if (item.revents & ZMQ_POLLIN) {
 			std::cout << "HC: Received pong from server " << 
 				(uint32_t) srv_id << std::endl;
 			hb_skt->recv(&buffer);
-			srv_expiry = SRV_OK;
 			hb_liveness = HEARTBEAT_LIVENESS;
-			ping_sent = false;
+			timeout = false;
+			pong_arrived = true;
 		}
 		
-		if (srv_expiry == SRV_TIMEOUT) {
-			std::cout << "Server Timeout!!!" <<
-				(int32_t)hb_liveness << std::endl;
+		if (timeout) {
+			
 			/* Send the next ping */
-			if (!ping_sent) {
+			if (pong_arrived) {
 				buffer.rebuild(EMPTY_MSG, 0);
 				hb_skt->send(buffer);
-				ping_sent = true;
-			}
-			if (--hb_liveness == 0) {
+				pong_arrived = false;
+			} else if (--hb_liveness == 0){
 				hb_liveness = HEARTBEAT_LIVENESS;
 				std::cout << "Server down... restarting" <<
 					std::endl;
-			}
+				restart_server();
+				} else
+					std::cout << "Server Timeout!!!" <<
+						std::endl;
 		}
-
 	}
+}
+
+void HealthChecker::restart_server()
+{
+	int8_t ret;
+	char_t server_service = static_cast<char_t>(srv_service);
+	/* Delete the actual ZMQ context */
+	delete hb_skt;
+	delete ctx;
+	
+	/* Kill the faulty server process and start a new one */
+	kill(srv_pid, SIGKILL);
+	srv_pid = fork();
+	if (srv_pid == 0) {
+		/* New server process */
+		ret = execlp("./server", &server_service, &srv_id,
+					(char_t *)NULL);
+		if (ret == -1) {
+			perror("Error execlp on restarting server");
+			exit(EXIT_FAILURE);
+		}
+	}
+	/* Initialize a new ZMQ context */
+	context_init();
+}
+
+/**
+ * @brief Allocates the ZMQ context, adds the needed socket and the poll item.
+ */
+
+void HealthChecker::context_init()
+{
+	std::string srv_address("localhost");
+	
+	try {
+		ctx = new zmq::context_t(1);
+	} catch (std::bad_alloc& ba) {
+		std::cerr << "bad_alloc caught: " << ba.what() << std::endl;
+		exit(EXIT_FAILURE);
+	}
+	
+	/* Add the dealer socket */
+	hb_skt = add_socket(ctx, srv_address, srv_port, ZMQ_REQ, CONNECT);
+	
+	/* Add the socket to the poll set */
+	item = {static_cast<void*>(*hb_skt), 0, ZMQ_POLLIN, 0};
 }
 
