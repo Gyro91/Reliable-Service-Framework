@@ -24,6 +24,7 @@
 /**
  * @brief      registration module for the server
  */
+ 
 struct registration_module {
 	char_t signature[MAX_LENGTH_SIGNATURE];
 	service_type_t service;

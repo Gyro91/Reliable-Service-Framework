@@ -101,6 +101,7 @@ void Broker::get_request()
 	request_module request;
 	response_module response;
 	request_record_t request_record;
+	service_module sm;
 	std::vector<zmq::message_t> buffer_in(NUM_FRAMES);
 
 	/* Receive multiple messages,
@@ -126,10 +127,12 @@ void Broker::get_request()
 
 	} else {
 		/* Service available */
-		buffer_in[DATA_FRAME].rebuild((void*) &request.parameter,
-			sizeof(request.parameter));
+		sm.heartbeat = false;
+		sm.parameter = request.parameter;
+		buffer_in[DATA_FRAME].rebuild((void*) &sm,
+			sizeof(service_module));
 		/* Forwarding the parameter */
-		for (uint8_t i = 0; i < nmr; i++)
+		for (uint8_t j = 0; j < nmr; j++)
 			send_multi_msg(dealer[ret], buffer_in);
 		/* Saving the request in the db */
 		db->push_request(&request_record, request.service);
@@ -168,11 +171,15 @@ void Broker::get_registration()
 			db->push_registration(&rm,
 				available_dealer_port, ready);
 			/* If all the copies are registered */
-			if (ready) 
+			if (ready) {
+				/* Make the service available */
+				available_services.push_back(rm.service);
+				/* Add a dealer port */
 				add_dealer(ret);
-
+			}
 			db->print_htable();
-			/* Sending back the result */
+			print_available_services();
+			/* Sending back the dealer port */
 			zmq::message_t reply(sizeof(ret));
 			memcpy(reply.data(), 
 				(void *) &ret, sizeof(ret));
@@ -193,6 +200,7 @@ void Broker::get_registration()
 void Broker::get_response(uint32_t dealer_index)
 {	
 	int32_t num_copies, ret, result;
+	uint32_t i = 0;
 	server_reply_t server_reply;
 	response_module response;
 	zmq::message_t message;
@@ -200,41 +208,43 @@ void Broker::get_response(uint32_t dealer_index)
 	std::vector<zmq::message_t> buffer_in(NUM_FRAMES);
 
 	/* Receiving all the messages */
-	for (uint8_t i = 0; i < ENVELOPE; i++) {
+
+	for (i = 0; i < ENVELOPE; i++) {
 		dealer[dealer_index]->recv(&buffer_in[i]);
 		if (i == ID_FRAME) {
-			/* We get the client id */
 			uint8_t *p = (uint8_t *) buffer_in[i].data();
 			p++;
 			client_id = *((uint32_t *) p);
 		}
 	}
 	
-	server_reply = *(static_cast<server_reply_t *> 
-		(buffer_in[DATA_FRAME].data()));
-	
-	num_copies = db->push_result(&server_reply, client_id);
-	db->print_htable();
-	if (num_copies == nmr) { 
-		ret = vote(db->get_result(server_reply.
-			service, client_id), result);
-		if (ret >= 0) {
-			/* Replace the data frame with the
-			 * one obtained from the voter.
-			 */
-			response.service_status = SERVICE_AVAILABLE;
-			response.result = result;
-			buffer_in[DATA_FRAME].rebuild((void*)&response, 
+	server_reply = *(static_cast<server_reply_t*>
+			(buffer_in[DATA_FRAME].data()));
+			
+	if (server_reply.id >= 0) {
+		std::cout << "Pong from Server" << (int32_t) server_reply.id <<
+		" service " << server_reply.service << std::endl;
+		db->register_pong(server_reply.id, server_reply.service);
+	} else {
+		num_copies = db->push_result(&server_reply, client_id);
+		if(num_copies == nmr) {
+			ret = vote(db->get_result(server_reply.service, 
+				client_id), result);
+			if(ret >= 0) {
+				/* Replace the data frame with the
+				 * one obtained from the voter.
+				 */
+				response.service_status = SERVICE_AVAILABLE;
+				response.result = result;
+				buffer_in[DATA_FRAME].rebuild((void*)&response, 
 				sizeof(response_module));
-			send_multi_msg(router, buffer_in);
+				send_multi_msg(router, buffer_in);
+			}
+
+			/* Deleting service request */
+			db->delete_request(server_reply.service, client_id);
 		}
-		
-		/* Deleting service request */
-		std::cout << server_reply.service << std::endl;
-		db->delete_request(server_reply.service, client_id);
 	}
-	
-	
 }
 
 /**
@@ -242,24 +252,45 @@ void Broker::get_response(uint32_t dealer_index)
  */
 
 void Broker::step()
-{		
+{	
+	bool timeout, first_time = true;
+	
 	for (;;) {
 
-		zmq::poll(items, -1);
-		std::cout << "Waking up" << std::endl;
+		zmq::poll(items, HEARTBEAT_INTERVAL * 2);
+		timeout = true;
 		
 		/* Check for a registration request */
-		if (items[REG_POLL_INDEX].revents & ZMQ_POLLIN) 
+		if (items[REG_POLL_INDEX].revents & ZMQ_POLLIN) {
 			get_registration();
-		
+			timeout = false;
+		}
 		/* Check for messages on the ROUTER socket */
-		if (items[ROUTER_POLL_INDEX].revents & ZMQ_POLLIN) 
+		else if (items[ROUTER_POLL_INDEX].revents & ZMQ_POLLIN) {
 			get_request();
+			timeout = false;
+		} 
+		else {	
+			/* Check for messages on the DEALER sockets */
+			for (uint32_t i = 0; i < dealer.size(); i++) 
+				if (items[i + DEALER_POLL_INDEX].revents & 
+					ZMQ_POLLIN) { 
+					get_response(i);
+					timeout = false;
+				}			
+		}
+		
+		if (timeout) {
+			std::cout << "Heartbeat" << std::endl;
 			
-		/* Check for messages on the DEALER sockets */
-		for (uint32_t i = 0; i < dealer.size(); i++) {
-			if (items[i + DEALER_POLL_INDEX].revents & ZMQ_POLLIN) 
-				get_response(i);
+			db->print_htable();
+			if (available_services.size() > 0) {
+				if (first_time) 
+					first_time = false;
+				else 
+					db->check_pong(available_services);
+				ping_servers();
+			}
 		}
 	}
 }
@@ -282,4 +313,45 @@ uint8_t Broker::vote(std::vector<int32_t> values, int32_t &result)
 	}
 	else
 		return -1;
+}
+
+/**
+ * @brief It sends a ping to all the servers
+ */
+ 
+void Broker::ping_servers()
+{
+	service_module sm;
+	uint8_t num_copies_reliable;
+	std::vector<zmq::message_t> buffer_in(NUM_FRAMES);
+	char_t id_ping[LENGTH_ID_FRAME];
+	
+	id_ping[0] = 0;
+	memset((id_ping + 1), 'a', LENGTH_ID_FRAME - 1);
+	
+	/* In order to reuse the same dealer port for receiving pong and
+	 * results we have to emulate the router-dealer-rep pattern */
+	sm.heartbeat = true;
+	for (uint32_t i = 0; i < dealer.size(); i++) {
+		buffer_in[ID_FRAME].rebuild((void*) &id_ping[0], sizeof(id_ping));
+		buffer_in[EMPTY_FRAME].rebuild((void*) "", 0);
+		buffer_in[DATA_FRAME].rebuild((void*) &sm,
+			sizeof(service_module));
+		num_copies_reliable = 
+			db->get_reliable_copies(available_services[i]);
+		
+		for(uint8_t j = 0; j < num_copies_reliable; j++)
+			send_multi_msg(dealer[i], buffer_in);
+	}
+}
+
+/**
+ * @brief It prints all the available services 
+ */
+ 
+void Broker::print_available_services()
+{	
+	for (uint32_t i = 0; i < available_services.size(); i++)
+		std::cout << "Service " << available_services[i] << " " << 
+		std::endl;
 }

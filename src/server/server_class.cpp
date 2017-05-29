@@ -41,7 +41,7 @@ Server::Server(uint8_t id, uint8_t service_type, std::string broker_address,
 
 	try {
 		registrator = new Registrator(broker_address, 
-			(service_type_t)service_type, REG_PORT_BROKER, context);
+			(service_type_t) service_type, REG_PORT_BROKER, context);
 	} catch (std::bad_alloc& ba) {
 		std::cerr << "bad_alloc caught: " << ba.what() << std::endl;
 		exit(EXIT_FAILURE);
@@ -67,6 +67,7 @@ Server::~Server()
 void Server::step()
 {	 
 	int32_t val, val_elab;
+	bool heartbeat;
 	
 	this->broker_port = registrator->registration();
 	if (this->broker_port > 0 && this->broker_port <= 65535) {
@@ -77,17 +78,30 @@ void Server::step()
 		std::cerr << "Error in the registration!" << std::endl;
 		exit(EXIT_FAILURE);
 	}
+	/* Adding the port to the poll set */
+	zmq::pollitem_t item = {static_cast<void*>(*reply), 0, ZMQ_POLLIN, 0};
+	items.push_back(item);
 	
 	for (;;) {
-		/* Receiving the value to elaborate */
-		receive_request(&val);
-
-		/* Elaborating */
-		val_elab = service(val);
-		sleep(1);
-
-		/* Sending back the result */
-		deliver_service(val_elab);
+		
+		zmq::poll(items, HEARTBEAT_INTERVAL);
+		
+		/* Check for a service request */
+		if (items[SERVICE_REQUEST_INDEX].revents & ZMQ_POLLIN) { 
+			/* Receiving the value to elaborate */
+			heartbeat = receive_request(&val);
+			if (!heartbeat) {
+				/* Elaborating */
+				val_elab = service(val);
+				sleep(1);
+				/* Sending back the result */
+				deliver_service(val_elab);
+			} else {
+				std::cout << "Server " << (int32_t) id << 
+				": Ping from Broker" << std::endl;
+				pong_broker();
+			}
+		}
 	}
 }
 
@@ -95,21 +109,25 @@ void Server::step()
  * @brief Receive the request message from the broker and returns 
  * 	  the data contained inside it.
  * @param val	Reference to return the message data.
+ * 
+ * @return it returns true if it is a broker ping
  */
 
-void Server::receive_request(int32_t* val)
+bool Server::receive_request(int32_t* val)
 {
 	zmq::message_t msg;
-	bool ret;
+	service_module sm;
 	
-	ret = reply->recv(&msg);
-	if (ret == true) {
-		*val = *(static_cast<int32_t*> (msg.data()));
+	reply->recv(&msg);
+	sm = *(static_cast<service_module *> (msg.data()));
+	
+	if (sm.heartbeat == false) {
+		*val = sm.parameter;
 		std::cout << "Server " << (int32_t)id << " received: " <<
-			*val << std::endl;
-	} else {
-		exit(EXIT_FAILURE);
+		*val << std::endl;
 	}
+	
+	return sm.heartbeat;
 }
 
 /**
@@ -121,7 +139,8 @@ void Server::deliver_service(int32_t val)
 {
 	server_reply_t server_reply;
 	zmq::message_t msg(sizeof(server_reply_t));
-	std::cout<< service_type << std::endl;
+	
+	server_reply.id = NO_PONG;
 	server_reply.result = val;
 	server_reply.service = service_type;
 	
@@ -129,4 +148,20 @@ void Server::deliver_service(int32_t val)
 	reply->send(msg);
 	std::cout << "Server " << (int32_t)id << " sent: " << val <<
 		std::endl;
+}
+
+/**
+ * @brief It sends a pong to the broker 
+ */
+ 
+void Server::pong_broker()
+{
+	server_reply_t server_reply;
+	zmq::message_t msg(sizeof(server_reply_t));
+	
+	server_reply.id = id; /* Pong from server id */
+	server_reply.service = service_type;
+	
+	memcpy(msg.data(), (void *) &server_reply, sizeof(server_reply_t));
+	reply->send(msg);
 }

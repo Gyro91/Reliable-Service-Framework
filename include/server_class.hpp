@@ -13,6 +13,8 @@
 #include "service.hpp"
 #include "registrator_class.hpp"
 
+#define SERVICE_REQUEST_INDEX 0
+
 class Server {
 
 private:
@@ -30,11 +32,15 @@ private:
 	zmq::socket_t *reply;
 	/* Registrator to register this unit to the broker */
 	Registrator *registrator;
+	/* Poll set */
+	std::vector<zmq::pollitem_t> items;
 	
 	/* Receive requests from the broker */
-	void receive_request(int32_t *val);
+	bool receive_request(int32_t *val);
 	/* Send results to the broker */
 	void deliver_service(int32_t val);
+	/* Send a pong to the broker */
+	void pong_broker();
 
 public:
 	Server(uint8_t id, uint8_t service, std::string broker_addr, 
