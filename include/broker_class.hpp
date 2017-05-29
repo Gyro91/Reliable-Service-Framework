@@ -13,6 +13,7 @@
 #include "types.hpp"
 #include "service.hpp"
 #include "service_database_class.hpp"
+
 #define ROUTER_POLL_INDEX 0
 #define REG_POLL_INDEX 1
 #define DEALER_POLL_INDEX 2

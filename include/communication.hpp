@@ -6,6 +6,8 @@
 #ifndef INCLUDE_COMMUNICATION_HPP_
 #define INCLUDE_COMMUNICATION_HPP_
 
+#include "service.hpp"
+
 #define COM_PROTOCOL "tcp://"
 #define LOCALHOST "localhost"
 #define ANY_ADDRESS "*"
@@ -24,7 +26,9 @@
 #define ENVELOPE 3
 
 #define HEARTBEAT_INTERVAL 1000
-#define NO_PONG -1 
+#define NO_PONG -1
+
+#define SERVER_PONG_PORT 7000
 
 /**
  * @brief      client request module for the service

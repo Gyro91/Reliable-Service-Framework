@@ -14,6 +14,7 @@
 #include "registrator_class.hpp"
 
 #define SERVICE_REQUEST_INDEX 0
+#define SERVER_PONG_INDEX 1
 
 class Server {
 
@@ -30,6 +31,7 @@ private:
 	/* Sockets for ZMQ communication */
 	zmq::context_t *context;
 	zmq::socket_t *reply;
+	zmq::socket_t *hc_pong;
 	/* Registrator to register this unit to the broker */
 	Registrator *registrator;
 	/* Poll set */
@@ -41,6 +43,8 @@ private:
 	void deliver_service(int32_t val);
 	/* Send a pong to the broker */
 	void pong_broker();
+	/* Receive the ping and send back a pong to the health checker */
+	void pong_health_checker();
 
 public:
 	Server(uint8_t id, uint8_t service, std::string broker_addr, 
