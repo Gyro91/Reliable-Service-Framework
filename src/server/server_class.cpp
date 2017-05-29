@@ -66,7 +66,7 @@ Server::~Server()
 
 void Server::step()
 {	 
-	int32_t val, val_elab;
+	int32_t val, val_elab, ping_loss = 0;
 	bool heartbeat;
 	
 	this->broker_port = registrator->registration();
@@ -84,7 +84,7 @@ void Server::step()
 	
 	for (;;) {
 		
-		zmq::poll(items, HEARTBEAT_INTERVAL);
+		zmq::poll(items, HEARTBEAT_INTERVAL + WCDPING);
 		
 		/* Check for a service request */
 		if (items[SERVICE_REQUEST_INDEX].revents & ZMQ_POLLIN) { 
@@ -100,6 +100,17 @@ void Server::step()
 				std::cout << "Server " << (int32_t) id << 
 				": Ping from Broker" << std::endl;
 				pong_broker();
+			}
+		} else {
+			/* Timeout expired. It is a Ping loss from the broker */
+			if (++ping_loss == LIVENESS) {
+				ping_loss = 0;
+				delete reply;
+				this->broker_port = registrator->registration();
+				if (this->broker_port > 0 && 
+					this->broker_port <= 65535) 
+				reply = add_socket(context, broker_address, 
+					broker_port, ZMQ_REP, CONNECT);
 			}
 		}
 	}

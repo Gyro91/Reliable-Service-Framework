@@ -25,6 +25,8 @@
 
 #define HEARTBEAT_INTERVAL 1000
 #define LIVENESS 3
+#define WCDPING 500
+
 #define NO_PONG -1 
 
 /**

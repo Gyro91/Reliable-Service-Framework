@@ -147,6 +147,7 @@ void Broker::get_registration()
 {	
 	int32_t more;
 	size_t more_size;
+	bool first_time = true;
 	zmq::message_t message;
 	
 	for (uint8_t i = 0; i < ENVELOPE; i++) {
@@ -170,8 +171,12 @@ void Broker::get_registration()
 			uint16_t ret = 
 			db->push_registration(&rm,
 				available_dealer_port, ready);
+			/* Checking if the service was already started */
+			for (uint32_t i = 0; i < available_services.size(); i++)
+				if (available_services[i] == rm.service)
+					first_time = false;
 			/* If all the copies are registered */
-			if (ready) {
+			if (ready && first_time) {
 				/* Make the service available */
 				available_services.push_back(rm.service);
 				/* Add a dealer port */
@@ -253,7 +258,7 @@ void Broker::get_response(uint32_t dealer_index)
 
 void Broker::step()
 {	
-	bool timeout, first_time = true;
+	bool timeout;
 	
 	for (;;) {
 
@@ -285,10 +290,7 @@ void Broker::step()
 			
 			db->print_htable();
 			if (available_services.size() > 0) {
-				if (first_time) 
-					first_time = false;
-				else 
-					db->check_pong(available_services);
+				db->check_pong(available_services);
 				ping_servers();
 			}
 		}

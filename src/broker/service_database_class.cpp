@@ -82,7 +82,7 @@ uint16_t ServiceDatabase::push_registration(registration_module *reg_mod,
 		
 		/* Init struct for reliability */
 		for (uint8_t j = 0; j < nmr; j++) {
-			record.lost_pong.push_back(0);
+			record.lost_pong.push_back(-1);
 			record.new_pong.push_back(false);
 		}
 		
@@ -235,6 +235,13 @@ void ServiceDatabase::register_pong(uint8_t id_copy, service_type_t service)
 	it->second.new_pong[id_copy] = true;
 }
 
+/**
+ * @brief It checks if there was a pong from the server copies and evaluates if
+ * 	  there's an unreliable unit if the number of pong loss is greater than
+ * 	  LIVENESS
+ * @param available_services vector of available services
+ */
+ 
 void ServiceDatabase::check_pong(std::vector<service_type_t> available_services)
 {	
 	uint8_t unreliable_units = 0;
@@ -248,7 +255,8 @@ void ServiceDatabase::check_pong(std::vector<service_type_t> available_services)
 				it->second.lost_pong[j] < LIVENESS) {
 				/* It is pong loss */
 				it->second.lost_pong[j]++;
-				std::cout << (int) it->second.lost_pong[j] << std::endl;
+				std::cout << (int) it->second.lost_pong[j] << 
+				std::endl;
 				/* If the number of pong loss is equal to 
 				 * liveness, the unit is unreliable */
 				if (it->second.lost_pong[j] == LIVENESS)
