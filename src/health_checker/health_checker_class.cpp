@@ -57,7 +57,7 @@ void HealthCheker::step()
 		if (item.revents & ZMQ_POLLIN) {
 			hb_skt->recv(&buffer);
 			srv_expiry = SRV_OK;
-			
+			hb_liveness = HEARTBEAT_LIVENESS;
 			/* Send the next ping */
 			hb_skt->send(buffer);
 			buffer.rebuild();
@@ -65,8 +65,13 @@ void HealthCheker::step()
 		
 		if (srv_expiry == SRV_TIMEOUT) {
 			std::cout << "Server Timeout!!!" << std::endl;
-		}
 			
+			if (--hb_liveness == 0) {
+				std::cout << "Server down... restarting" <<
+					std::endl;
+			}
+		}
+
 	}
 }
 

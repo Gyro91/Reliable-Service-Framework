@@ -204,6 +204,7 @@ void deployment(uint8_t service, uint8_t num_copy_server,
 				"my children!" << std::endl;
 			break;
 		}
+		/* Start the server process */
 		list_server_pid[i] = fork();
 		if (list_server_pid[i] == 0) {
 			char_t server_service = static_cast<char_t>(service);
