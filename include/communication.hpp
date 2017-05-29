@@ -24,6 +24,7 @@
 #define ENVELOPE 3
 
 #define HEARTBEAT_INTERVAL 1000
+#define LIVENESS 3
 #define NO_PONG -1 
 
 /**

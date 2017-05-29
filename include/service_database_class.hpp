@@ -45,10 +45,12 @@ struct service_record {
 	uint16_t dealer_skt_index;
 	/* Vector of active requests from the clients */
 	std::vector<request_record_t> request_records;
-	/* Vectors that points out if in the old or current timeout it was 
-	 * received a pong from a the server copies */
-	std::vector<bool> old_pong;
+	/* Vectors that points out if in the current timeout it was 
+	 * received a pong from a the server copies and the number 
+	 * of pong loss */
 	std::vector<bool> new_pong;
+	std::vector<int8_t> lost_pong;
+	
 };
 
 /* std::unordered_map requires a hash functor in order to do anything.  

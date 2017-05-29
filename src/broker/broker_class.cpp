@@ -257,7 +257,7 @@ void Broker::step()
 	
 	for (;;) {
 
-		zmq::poll(items, HEARTBEAT_INTERVAL * 2);
+		zmq::poll(items, HEARTBEAT_INTERVAL);
 		timeout = true;
 		
 		/* Check for a registration request */

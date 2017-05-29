@@ -73,16 +73,19 @@ uint16_t ServiceDatabase::push_registration(registration_module *reg_mod,
 	if (i == services_db.end()) {
 		/* If not present */
 		service_record record;
+		/* Init record */
 		record.owner = std::string(reg_mod->signature);
 		record.num_copies_registered = 1;
 		record.num_copies_reliable = 1;
 		record.dealer_skt_index = next_dealer_skt_index;
 		record.dealer_socket = dealer_socket;
 		
+		/* Init struct for reliability */
 		for (uint8_t j = 0; j < nmr; j++) {
-			record.old_pong.push_back(true);
+			record.lost_pong.push_back(0);
 			record.new_pong.push_back(false);
 		}
+		
 		services_db[service_type] = record;
 		
 		next_dealer_skt_index++;
@@ -234,7 +237,7 @@ void ServiceDatabase::register_pong(uint8_t id_copy, service_type_t service)
 
 void ServiceDatabase::check_pong(std::vector<service_type_t> available_services)
 {	
-	uint8_t cnt = 0;
+	uint8_t unreliable_units = 0;
 	std::unordered_map<service_type_t, service_record, 
 		service_type_hash>::iterator it;
 		
@@ -242,15 +245,24 @@ void ServiceDatabase::check_pong(std::vector<service_type_t> available_services)
 		it = services_db.find(available_services[i]);
 		for (uint8_t j = 0; j < nmr; j++)
 			if (!it->second.new_pong[j] && 
-			it->second.new_pong[j] != it->second.old_pong[j]) {
-				cnt++;
-				it->second.old_pong[j] = it->second.new_pong[j];
-			}
-			else
+				it->second.lost_pong[j] < LIVENESS) {
+				/* It is pong loss */
+				it->second.lost_pong[j]++;
+				std::cout << (int) it->second.lost_pong[j] << std::endl;
+				/* If the number of pong loss is equal to 
+				 * liveness, the unit is unreliable */
+				if (it->second.lost_pong[j] == LIVENESS)
+					unreliable_units++;
+			} else if (it->second.new_pong[j]) {
 				it->second.new_pong[j] = false;
-		std::cout << (int) cnt << std::endl;			
-		it->second.num_copies_reliable -= cnt;
-		cnt = 0;
+				/* Restarting to count */
+				it->second.lost_pong[j] = 0;
+			}
+				
+		std::cout << (int) unreliable_units << std::endl;			
+		it->second.num_copies_reliable -= unreliable_units;
+		it->second.num_copies_registered -= unreliable_units;
+		unreliable_units = 0;
 	}
 
 }
