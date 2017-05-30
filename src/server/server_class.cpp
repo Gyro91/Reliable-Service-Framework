@@ -4,6 +4,7 @@
  */
 #include <iostream>
 #include <stdio.h>
+#include <time.h>
 #include "../../include/server_class.hpp"
 #include "../../include/communication.hpp"
 #include "../../include/util.hpp"
@@ -21,12 +22,10 @@
  * 
  */
 
-Server::Server(uint8_t id, uint8_t service_type, std::string broker_address, 
-		uint16_t broker_port) 
+Server::Server(uint8_t id, uint8_t service_type, std::string broker_address) 
 {	
 	this->id = id;
 	this->service_type = (service_type_t)service_type;
-	this->broker_port = broker_port;
 	this->broker_address = broker_address;
 
 	service = get_service_body(this->service_type);
@@ -71,31 +70,24 @@ Server::~Server()
 
 void Server::step()
 {	 
-	int32_t val, val_elab, ping_loss = 0;
-	bool heartbeat;
+	int32_t val, val_elab, ret, ping_loss = 0;
+	struct timespec tmp_t, time_t;
+	bool heartbeat, reg_ok = true;
 	
-	/* Add the reply socket */
-	this->broker_port = registrator->registration();
-	if (this->broker_port > 0 && this->broker_port <= 65535) {
-		/* In this case the REP socket requires the connect() method! */
-		reply = add_socket(context, broker_address, broker_port, 
-			ZMQ_REP, CONNECT);
-	} else {
-		std::cerr << "Error in the registration!" << std::endl;
-		exit(EXIT_FAILURE);
-	}
 	
 	/* Adding the sockets to the poll set */
-	zmq::pollitem_t item = {static_cast<void*>(*reply), 0, ZMQ_POLLIN, 0};
-	items.push_back(item);
-	item = {static_cast<void*>(*hc_pong), 0, ZMQ_POLLIN, 0};
-	items.push_back(item);
+	zmq::pollitem_t item = {static_cast<void*>(*hc_pong), 0, ZMQ_POLLIN, 0};
+	items.push_back(item);;
 	
 	for (;;) {
 		zmq::poll(items, HEARTBEAT_INTERVAL + WCDPING);
-		
+		ret = clock_gettime(CLOCK_MONOTONIC, &tmp_t);
+		if (ret == -1)
+			std::cerr << "Error gettime " << std::endl;
 		/* Check for a service request */
-		if (items[SERVICE_REQUEST_INDEX].revents & ZMQ_POLLIN) { 
+		if (!reg_ok && (items[SERVICE_REQUEST_INDEX].revents 
+			& ZMQ_POLLIN)) {
+			std::cout << "receiving from the broker" << std::endl; 
 			/* Receiving the value to elaborate */
 			heartbeat = receive_request(&val);
 			if (!heartbeat) {
@@ -107,26 +99,61 @@ void Server::step()
 			} else {
 				std::cout << "Server " << (int32_t) id << 
 				": Ping from Broker" << std::endl;
+				ret = clock_gettime(CLOCK_MONOTONIC, &time_t);
+				if (ret == -1)
+					std::cerr << "Error gettime " << 
+					std::endl;
+				else
+					time_add_ms(&time_t, 
+						HEARTBEAT_INTERVAL + WCDPING);
 				pong_broker();
 			}
-		} else {
-			/* Timeout expired. It is a Ping loss from the broker */
-			if (++ping_loss == LIVENESS) {
-				ping_loss = 0;
+		} 
+		if (reg_ok) 
+			{
+			std::cout << "registration" << std::endl;
+			/* Add the reply socket */
+			this->broker_port = registrator->registration();
+			std::cout << this->broker_port << std::endl;
+			if (this->broker_port > 0 && this->broker_port <= 65535) 
+				{
+				/* In this case the REP socket requires 
+				 * the connect() method! */
 				delete reply;
-				this->broker_port = registrator->registration();
-				if (this->broker_port > 0 && 
-					this->broker_port <= 65535) 
-					reply = add_socket(context, 
-					broker_address, broker_port, ZMQ_REP, 
-					CONNECT);
+				reply = add_socket(context, broker_address, 
+				broker_port, ZMQ_REP, CONNECT);
+				item = {static_cast<void*>(*reply), 0, 
+					ZMQ_POLLIN, 0};
+				items.push_back(item);
+				reg_ok = false;
+				ping_loss = 0;
+				
+			} else if (this->broker_port == 0) {
+				std::cerr << "Error in the registration!" << 
+				std::endl;
+				exit(EXIT_FAILURE);
+			} else if (this->broker_port == -1) {
+				std::cout << "timeout send expired" << 
+				std::endl;
 			}
 		}
+		
 		if (items[SERVER_PONG_INDEX].revents & ZMQ_POLLIN) {
 			/* Receive the ping from the health checker */
 			std::cout << "Received ping from HC" << std::endl;
 			pong_health_checker();
 		}
+ 
+		if (time_cmp(&tmp_t, &time_t) == 1) {
+			/* Timeout expired. It is a Ping loss from the broker */
+			if (++ping_loss == LIVENESS) {
+				std::cout << "brutte cose" << std::endl;
+				items.erase(items.end() - 1);
+				reg_ok = true;
+		
+			}
+		}
+	
 	}
 }
 

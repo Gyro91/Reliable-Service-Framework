@@ -13,8 +13,9 @@
 #include "service.hpp"
 #include "registrator_class.hpp"
 
-#define SERVICE_REQUEST_INDEX 0
-#define SERVER_PONG_INDEX 1
+#define SERVICE_REQUEST_INDEX 1
+#define REGISTRATION_INDEX 1
+#define SERVER_PONG_INDEX 0
 
 class Server {
 
@@ -27,7 +28,7 @@ private:
 	service_body service;
 	/* Address and port for communication */
 	std::string broker_address;
-	uint16_t broker_port;
+	int32_t broker_port;
 	/* Sockets for ZMQ communication */
 	zmq::context_t *context;
 	zmq::socket_t *reply;
@@ -47,8 +48,7 @@ private:
 	void pong_health_checker();
 
 public:
-	Server(uint8_t id, uint8_t service, std::string broker_addr, 
-		uint16_t broker_port);
+	Server(uint8_t id, uint8_t service, std::string broker_addr);
 	void step();
 	~Server();
 };

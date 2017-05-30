@@ -28,6 +28,8 @@ Registrator::Registrator(std::string broker_address, service_type_t service,
 
 	/* Create the ZMQ Socket to register the service */
 	reg = add_socket(ctx, broker_address, reg_port, ZMQ_REQ, CONNECT);
+	
+	reg->setsockopt(ZMQ_RCVTIMEO, HEARTBEAT_INTERVAL);
 }
 
 /**
@@ -46,9 +48,9 @@ Registrator::~Registrator()
  * 
  */
 
-uint16_t Registrator::registration()
+int32_t Registrator::registration()
 {	
-	uint16_t dealer_port;
+	int32_t dealer_port;
 	registration_module rm;
 
 	/* Signing the registration module */

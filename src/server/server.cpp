@@ -20,8 +20,7 @@ int32_t main(int32_t argc, char_t* argv[])
 	std::string broker_address("localhost");
 
 	try {
-		server = new Server(id, service, broker_address, 
-			DEALER_START_PORT);
+		server = new Server(id, service, broker_address);
 	} catch (std::bad_alloc& ba) {
 		std::cerr << "bad_alloc caught: " << ba.what() <<  std::endl;
 		exit(EXIT_FAILURE);

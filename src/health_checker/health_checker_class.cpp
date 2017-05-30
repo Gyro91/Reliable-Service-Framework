@@ -80,12 +80,12 @@ void HealthChecker::step()
 				pong_arrived = false;
 			} else if (--hb_liveness == 0){
 				hb_liveness = HEARTBEAT_LIVENESS;
-				std::cout << "Server down... restarting" <<
-					std::endl;
-				restart_server();
-				} else
-					std::cout << "Server Timeout!!!" <<
-						std::endl;
+			//	std::cout << "Server down... restarting" <<
+			//		std::endl;
+				//restart_server();
+				} //else
+				//	std::cout << "Server Timeout!!!" <<
+				//		std::endl;
 		}
 	}
 }

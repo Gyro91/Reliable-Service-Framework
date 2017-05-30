@@ -30,7 +30,7 @@ struct registration_module {
 	service_type_t service;
 };
 
-extern uint16_t register_service(registration_module *, zmq::socket_t *);
+extern int32_t register_service(registration_module *, zmq::socket_t *);
 extern bool request_service(request_module &, zmq::socket_t *, int32_t &);
 
 #endif
