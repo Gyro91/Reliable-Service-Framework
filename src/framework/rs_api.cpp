@@ -24,8 +24,6 @@ int32_t register_service(registration_module *reg_mod, zmq::socket_t *socket)
 	
 	/* Sending request */
        	memcpy(request.data(), (void *) reg_mod, sizeof(registration_module));
-        std::cout << "Registration for the service " << reg_mod->service 
-        	<< std::endl;
 	if (!send_reg) {
 		socket->send(request);
 		send_reg = true;
@@ -35,11 +33,9 @@ int32_t register_service(registration_module *reg_mod, zmq::socket_t *socket)
         /* Receiving an answer */
         zmq::message_t reply;
     	ret = socket->recv(&reply);
-	if (ret == false) {
-		std::cout << "Timeout registration expired" << std::endl;
+	if (ret == false) 
 		return -1;
 		
-	}
 	send_reg = false;
 	dealer_port = *(static_cast<uint16_t*> (reply.data()));
 	std::cout << "Received Dealer port " << dealer_port << std::endl;

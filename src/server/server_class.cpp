@@ -87,7 +87,6 @@ void Server::step()
 		/* Check for a service request */
 		if (!reg_ok && (items[SERVICE_REQUEST_INDEX].revents 
 			& ZMQ_POLLIN)) {
-			std::cout << "receiving from the broker" << std::endl; 
 			/* Receiving the value to elaborate */
 			heartbeat = receive_request(&val);
 			if (!heartbeat) {
@@ -111,10 +110,8 @@ void Server::step()
 		} 
 		if (reg_ok) 
 			{
-			std::cout << "registration" << std::endl;
 			/* Add the reply socket */
 			this->broker_port = registrator->registration();
-			std::cout << this->broker_port << std::endl;
 			if (this->broker_port > 0 && this->broker_port <= 65535) 
 				{
 				/* In this case the REP socket requires 

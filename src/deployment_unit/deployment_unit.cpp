@@ -27,7 +27,7 @@ void deployment(uint8_t service, uint8_t num_copy_server,
 	pid_t *list_server_pid, int32_t *status)
 {
 	int8_t ret;
-	uint8_t i = 0, num_children_dead = -1;
+	uint8_t i = 0;
 	pid_t hc_pid;
 	std::string pid_str;
 	std::string id_str;
@@ -44,7 +44,7 @@ void deployment(uint8_t service, uint8_t num_copy_server,
 				std:: cout << "Pid " << 
 				list_server_pid[i] << std::endl;
 			/* Wait on the children */
-			while (++num_children_dead < num_copy_server)
+			while (true)
 				wait(&status);
 			std::cerr << "Wake up!Something happened to "
 				"my children!" << std::endl;

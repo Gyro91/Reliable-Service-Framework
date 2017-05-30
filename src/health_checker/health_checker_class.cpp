@@ -80,12 +80,12 @@ void HealthChecker::step()
 				pong_arrived = false;
 			} else if (--hb_liveness == 0){
 				hb_liveness = HEARTBEAT_LIVENESS;
-			//	std::cout << "Server down... restarting" <<
-			//		std::endl;
-				//restart_server();
-				} //else
-				//	std::cout << "Server Timeout!!!" <<
-				//		std::endl;
+				std::cout << "Server down... restarting" <<
+					std::endl;
+				restart_server();
+				} else
+					std::cout << "Server Timeout!!!" <<
+						std::endl;
 		}
 	}
 }
@@ -93,17 +93,15 @@ void HealthChecker::step()
 void HealthChecker::restart_server()
 {
 	int8_t ret;
+	std::string srv_address("localhost");
 	char_t server_service = static_cast<char_t>(srv_service);
-	/* Delete the actual ZMQ context */
-	delete hb_skt;
-	delete ctx;
 	
 	/* Kill the faulty server process and start a new one */
-	ret = kill(srv_pid, SIGKILL);
-	if (ret != 0) {
-		std::cout << "Error during kill!!!" << std::endl;
-		exit(EXIT_FAILURE);
-	}
+//	ret = kill(srv_pid, SIGKILL);
+//	if (ret != 0) {
+//		std::cout << "Error during kill!!!" << std::endl;
+//		exit(EXIT_FAILURE);
+//	}
 	srv_pid = fork();
 	if (srv_pid == 0) {
 		/* New server process */
@@ -114,8 +112,7 @@ void HealthChecker::restart_server()
 			exit(EXIT_FAILURE);
 		}
 	}
-	/* Initialize a new ZMQ context */
-	context_init();
+
 }
 
 /**
