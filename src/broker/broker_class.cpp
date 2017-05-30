@@ -335,7 +335,8 @@ void Broker::ping_servers()
 	 * results we have to emulate the router-dealer-rep pattern */
 	sm.heartbeat = true;
 	for (uint32_t i = 0; i < dealer.size(); i++) {
-		buffer_in[ID_FRAME].rebuild((void*) &id_ping[0], sizeof(id_ping));
+		buffer_in[ID_FRAME].rebuild((void*) &id_ping[0], 
+			sizeof(id_ping));
 		buffer_in[EMPTY_FRAME].rebuild((void*) "", 0);
 		buffer_in[DATA_FRAME].rebuild((void*) &sm,
 			sizeof(service_module));

@@ -109,8 +109,9 @@ void Server::step()
 				this->broker_port = registrator->registration();
 				if (this->broker_port > 0 && 
 					this->broker_port <= 65535) 
-				reply = add_socket(context, broker_address, 
-					broker_port, ZMQ_REP, CONNECT);
+					reply = add_socket(context, 
+					broker_address, broker_port, ZMQ_REP, 
+					CONNECT);
 			}
 		}
 	}
