@@ -6,7 +6,10 @@
 #ifndef INCLUDE_COMMUNICATION_HPP_
 #define INCLUDE_COMMUNICATION_HPP_
 
-#define COM_PROTOCOL "tcp://"
+#include "service.hpp"
+
+#define TCP_PROTOCOL "tcp://"
+#define IPC_PROTOCOL "ipc://"
 #define LOCALHOST "localhost"
 #define ANY_ADDRESS "*"
 #define BIND 0
@@ -15,6 +18,7 @@
 #define ROUTER_PORT_BROKER 5559
 #define DEALER_START_PORT 6000
 #define MAX_LENGTH_STRING_PORT 6
+#define EMPTY_MSG (void*)""
 
 #define NUM_FRAMES 3
 #define ID_FRAME 0
@@ -26,8 +30,9 @@
 #define HEARTBEAT_INTERVAL 1000
 #define LIVENESS 3
 #define WCDPING 500
+#define NO_PONG -1
 
-#define NO_PONG -1 
+#define SERVER_PONG_PORT 7000
 
 /**
  * @brief      client request module for the service

@@ -41,11 +41,16 @@ Server::Server(uint8_t id, uint8_t service_type, std::string broker_address,
 
 	try {
 		registrator = new Registrator(broker_address, 
-			(service_type_t) service_type, REG_PORT_BROKER, context);
+			(service_type_t) service_type, REG_PORT_BROKER, 
+			context);
 	} catch (std::bad_alloc& ba) {
 		std::cerr << "bad_alloc caught: " << ba.what() << std::endl;
 		exit(EXIT_FAILURE);
-	}	
+	}
+
+	/* Add the pong socket */
+	hc_pong = add_socket(context, ANY_ADDRESS, SERVER_PONG_PORT + id,
+		ZMQ_REP, BIND);
 }
 
 /**
@@ -69,6 +74,7 @@ void Server::step()
 	int32_t val, val_elab, ping_loss = 0;
 	bool heartbeat;
 	
+	/* Add the reply socket */
 	this->broker_port = registrator->registration();
 	if (this->broker_port > 0 && this->broker_port <= 65535) {
 		/* In this case the REP socket requires the connect() method! */
@@ -78,12 +84,14 @@ void Server::step()
 		std::cerr << "Error in the registration!" << std::endl;
 		exit(EXIT_FAILURE);
 	}
-	/* Adding the port to the poll set */
+	
+	/* Adding the sockets to the poll set */
 	zmq::pollitem_t item = {static_cast<void*>(*reply), 0, ZMQ_POLLIN, 0};
+	items.push_back(item);
+	item = {static_cast<void*>(*hc_pong), 0, ZMQ_POLLIN, 0};
 	items.push_back(item);
 	
 	for (;;) {
-		
 		zmq::poll(items, HEARTBEAT_INTERVAL + WCDPING);
 		
 		/* Check for a service request */
@@ -113,6 +121,11 @@ void Server::step()
 					broker_address, broker_port, ZMQ_REP, 
 					CONNECT);
 			}
+		}
+		if (items[SERVER_PONG_INDEX].revents & ZMQ_POLLIN) {
+			/* Receive the ping from the health checker */
+			std::cout << "Received ping from HC" << std::endl;
+			pong_health_checker();
 		}
 	}
 }
@@ -176,4 +189,16 @@ void Server::pong_broker()
 	
 	memcpy(msg.data(), (void *) &server_reply, sizeof(server_reply_t));
 	reply->send(msg);
+}
+
+void Server::pong_health_checker()
+{
+	zmq::message_t msg;
+	
+	/* Receive the ping */
+	hc_pong->recv(&msg);
+	msg.rebuild(EMPTY_MSG, 0);
+	
+	/* Send the pong */
+	hc_pong->send(msg);
 }

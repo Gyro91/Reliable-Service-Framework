@@ -14,7 +14,7 @@
 #include "../../include/communication.hpp"
 
 /**
- * @brief Retrieves the option passed to the program
+ * @brief Retrieves the option passed to the client program
  * @param argc Number of options passed
  * @param argv Pointer to the options passed
  * @param num_cp_server Where to store the number of copies of a server
@@ -68,7 +68,7 @@ void get_arg(int32_t argc, char_t *argv[], uint8_t &num_cp_server,
 }
 
 /**
- * @brief Retrieves the option passed to the program
+ * @brief Retrieves the option passed to the server program
  * @param argc Number of options passed
  * @param argv Pointer to the options passed
  * @param service Where to store the number of service to be deployed
@@ -76,7 +76,8 @@ void get_arg(int32_t argc, char_t *argv[], uint8_t &num_cp_server,
  * @return None
  */
 
-void get_arg(int32_t argc, char_t *argv[], service_type_t &service, char_t num_options)
+void get_arg(int32_t argc, char_t *argv[], service_type_t &service, 
+	char_t num_options)
 {
 	char_t c;
 	uint8_t cnt_options = 0;
@@ -144,7 +145,11 @@ zmq::socket_t* add_socket(zmq::context_t *ctx, std::string addr, uint16_t port,
 	memset(str, '\0', MAX_LENGTH_STRING_PORT);
 	sprintf(str, "%d", port);
 	p.assign(str);
-	conf = (COM_PROTOCOL + addr + ":" + p);
+	
+	if (port != 0)
+		conf = (TCP_PROTOCOL + addr + ":" + p);
+	else
+		conf = (IPC_PROTOCOL + addr);
 	
 	if (dir == BIND)
 		skt->bind(conf.c_str());
@@ -177,12 +182,13 @@ void send_multi_msg(zmq::socket_t *skt, std::vector<zmq::message_t> &msg)
 	skt->send(tmp, 0);
 }
 
-/*
+ 
+/**
  * @brief It deploys the server copies for the specified service
- * @param service It is the server service
- * @param list_server_pid Array of server pid
+ * @param service service It is the server service
+ * @param num_copy_server list_server_pid Array of server pid
+ * @param list_server_pid list of the servers PIDs
  * @param status Variable to monitor children
- * @return 
  */
 
 void deployment(uint8_t service, uint8_t num_copy_server, 
@@ -190,6 +196,12 @@ void deployment(uint8_t service, uint8_t num_copy_server,
 {
 	int8_t ret;
 	uint8_t i = 0, num_children_dead = -1;
+	pid_t hc_pid;
+	std::string pid_str;
+	std::string id_str;
+	char_t const *pid_char;
+	char_t const *id_char;
+	char_t server_service = static_cast<char_t>(service);
 
 	/* Server copies deployment */
 	for (;;) {
@@ -206,9 +218,10 @@ void deployment(uint8_t service, uint8_t num_copy_server,
 				"my children!" << std::endl;
 			break;
 		}
+		/* Start the server process */
+		
 		list_server_pid[i] = fork();
 		if (list_server_pid[i] == 0) {
-			char_t server_service = static_cast<char_t>(service);
 			/* Becoming one of the redundant copies */
 			ret = execlp("./server", &server_service, &i,
 					(char_t *)NULL);
@@ -216,8 +229,25 @@ void deployment(uint8_t service, uint8_t num_copy_server,
 				perror("Error execlp on server");
 				exit(EXIT_FAILURE);
 			}
-		} else
-			i++;
+		} else {
+			pid_str = std::to_string(list_server_pid[i]);
+			pid_char = pid_str.c_str();
+			id_str = std::to_string(i);
+			id_char = id_str.c_str();
+			/* Start the health checker process */
+			hc_pid = fork();
+			if (hc_pid == 0) {
+				ret = execlp("./health_checker", 
+					id_char, &server_service,
+						pid_char, (char_t *)NULL);
+				if (ret == -1) {
+					perror("Error execlp on healt_checker");
+					exit(EXIT_FAILURE);
+				}
+			}
+			else
+				i++;
+		}
 	}
 }
 

@@ -66,10 +66,55 @@ Broker::Broker(uint8_t nmr, uint16_t port_router, uint16_t port_reg)
 
 Broker::~Broker()
 {
-	delete context;
 	delete router;
 	delete reg;
 	delete db;
+	delete context;
+}
+
+/**
+ * @brief      step function
+ */
+
+void Broker::step()
+{	
+	bool timeout;
+	
+	for (;;) {
+
+		zmq::poll(items, HEARTBEAT_INTERVAL);
+		timeout = true;
+		
+		/* Check for a registration request */
+		if (items[REG_POLL_INDEX].revents & ZMQ_POLLIN) {
+			get_registration();
+			timeout = false;
+		}
+		/* Check for messages on the ROUTER socket */
+		else if (items[ROUTER_POLL_INDEX].revents & ZMQ_POLLIN) {
+			get_request();
+			timeout = false;
+		} 
+		else {	
+			/* Check for messages on the DEALER sockets */
+			for (uint32_t i = 0; i < dealer.size(); i++) 
+				if (items[i + DEALER_POLL_INDEX].revents & 
+					ZMQ_POLLIN) { 
+					get_response(i);
+					timeout = false;
+				}			
+		}
+		
+		if (timeout) {
+			std::cout << "Heartbeat" << std::endl;
+			
+			db->print_htable();
+			if (available_services.size() > 0) {
+				db->check_pong(available_services);
+				ping_servers();
+			}
+		}
+	}
 }
 
 /**
@@ -252,52 +297,7 @@ void Broker::get_response(uint32_t dealer_index)
 	}
 }
 
-/**
- * @brief      step function
- */
-
-void Broker::step()
-{	
-	bool timeout;
-	
-	for (;;) {
-
-		zmq::poll(items, HEARTBEAT_INTERVAL);
-		timeout = true;
-		
-		/* Check for a registration request */
-		if (items[REG_POLL_INDEX].revents & ZMQ_POLLIN) {
-			get_registration();
-			timeout = false;
-		}
-		/* Check for messages on the ROUTER socket */
-		else if (items[ROUTER_POLL_INDEX].revents & ZMQ_POLLIN) {
-			get_request();
-			timeout = false;
-		} 
-		else {	
-			/* Check for messages on the DEALER sockets */
-			for (uint32_t i = 0; i < dealer.size(); i++) 
-				if (items[i + DEALER_POLL_INDEX].revents & 
-					ZMQ_POLLIN) { 
-					get_response(i);
-					timeout = false;
-				}			
-		}
-		
-		if (timeout) {
-			std::cout << "Heartbeat" << std::endl;
-			
-			db->print_htable();
-			if (available_services.size() > 0) {
-				db->check_pong(available_services);
-				ping_servers();
-			}
-		}
-	}
-}
-
-/**
+/*
  * @brief Implements the voting logic
  * @param values List containing the values returned from the servers
  * @return >0 index of the majority value, -1 there is no majority
