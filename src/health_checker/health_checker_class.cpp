@@ -99,7 +99,11 @@ void HealthChecker::restart_server()
 	delete ctx;
 	
 	/* Kill the faulty server process and start a new one */
-	kill(srv_pid, SIGKILL);
+	ret = kill(srv_pid, SIGKILL);
+	if (ret != 0) {
+		std::cout << "Error during kill!!!" << std::endl;
+		exit(EXIT_FAILURE);
+	}
 	srv_pid = fork();
 	if (srv_pid == 0) {
 		/* New server process */
