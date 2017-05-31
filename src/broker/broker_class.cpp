@@ -47,11 +47,14 @@ Broker::Broker(uint8_t nmr, uint16_t port_router, uint16_t port_reg)
 	
 	/* Registration socket creation */
 	reg = add_socket(context, ANY_ADDRESS, port_reg, ZMQ_ROUTER, BIND);
-
+	/* Health checker socket creation */
+	hc = add_socket(context, ANY_ADDRESS, BROKER_PONG_PORT, ZMQ_REP, BIND);
 	/* Initialize the poll set */
 	zmq::pollitem_t tmp = {static_cast<void*>(*router), 0, ZMQ_POLLIN, 0};
 	items.push_back(tmp);
 	tmp = {static_cast<void*>(*reg), 0, ZMQ_POLLIN, 0};
+	items.push_back(tmp);
+	tmp = {static_cast<void*>(*hc), 0, ZMQ_POLLIN, 0};
 	items.push_back(tmp);
 
 	/* Creating a Service Database*/
@@ -85,6 +88,13 @@ void Broker::step()
 		zmq::poll(items, HEARTBEAT_INTERVAL);
 		timeout = true;
 		
+		/* Check the ping from the health checker*/
+		if (items[HC_POLL_INDEX].revents & ZMQ_POLLIN) {
+			std::cout << "Broker: Received ping from HC" 
+				<< std::endl;
+			pong_health_checker();
+			timeout = false;
+		}
 		/* Check for a registration request */
 		if (items[REG_POLL_INDEX].revents & ZMQ_POLLIN) {
 			get_registration();
@@ -356,4 +366,16 @@ void Broker::print_available_services()
 	for (uint32_t i = 0; i < available_services.size(); i++)
 		std::cout << "Service " << available_services[i] << " " << 
 		std::endl;
+}
+
+void Broker::pong_health_checker()
+{
+	zmq::message_t msg;
+	
+	/* Receive the ping */
+	hc->recv(&msg);
+	msg.rebuild(EMPTY_MSG, 0);
+	
+	/* Send the pong */
+	hc->send(msg);
 }

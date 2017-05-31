@@ -6,26 +6,23 @@
 #include <stdio.h>
 #include <signal.h>
 #include <unistd.h>
-#include "../../include/health_checker_server_class.hpp"
+#include "../../include/health_checker_broker_class.hpp"
 #include "../../include/util.hpp"
 #include "../../include/communication.hpp"
 
 /**
  * @brief Health checker constructor
- * @param srv_pid PID of the monitored server process
- * @param srv_id ID of the monitored service redundant copy
- * @param srv_service Service provided by yhe monitored server
- * @param srv_port Port address for the server socket
+ * @param pid PID of the monitored broker process
+ * @param port Port address for the broker socket
  */
 
-HealthCheckerServer::HealthCheckerServer(pid_t pid, uint16_t port, uint8_t server_id, 
-	uint8_t service) : HealthChecker(pid, port)
+HealthCheckerBroker::HealthCheckerBroker(pid_t pid, uint16_t port) 
+	: HealthChecker(pid, port)
 {
-	this->server_id = server_id;
-	this->service = service;
+
 }
 
-HealthCheckerServer::~HealthCheckerServer()
+HealthCheckerBroker::~HealthCheckerBroker()
 {
 	
 }
@@ -35,7 +32,7 @@ HealthCheckerServer::~HealthCheckerServer()
  *
  */
 
-void HealthCheckerServer::step()
+void HealthCheckerBroker::step()
 {
 	/* Message buffer to receive pong from the server */
 	zmq::message_t buffer;
@@ -53,8 +50,8 @@ void HealthCheckerServer::step()
 		timeout = true;
 		
 		if (item.revents & ZMQ_POLLIN) {
-			std::cout << "HC: Received pong from server " << 
-				(uint32_t) server_id << std::endl;
+			std::cout << "HC: Received pong from broker" << 
+				std::endl;
 			hb_skt->recv(&buffer);
 			hb_liveness = HEARTBEAT_LIVENESS;
 			timeout = false;
@@ -70,21 +67,20 @@ void HealthCheckerServer::step()
 				pong_arrived = false;
 			} else if (--hb_liveness == 0){
 				hb_liveness = HEARTBEAT_LIVENESS;
-				std::cout << "Server down... restarting" <<
+				std::cout << "Broker down... restarting" <<
 					std::endl;
 				restart_process();
 				} else
-					std::cout << "Server Timeout!" <<
+					std::cout << "Broker Timeout!" <<
 						std::endl;
 		}
 	}
 }
 
-void HealthCheckerServer::restart_process()
+void HealthCheckerBroker::restart_process()
 {
 	int8_t ret;
-	char_t server_service = static_cast<char_t>(service);
-	
+	char_t name[7] = "broker";
 	/* Kill the faulty server process and start a new one */
 //	ret = kill(srv_pid, SIGKILL);
 //	if (ret != 0) {
@@ -94,10 +90,9 @@ void HealthCheckerServer::restart_process()
 	pid = fork();
 	if (pid == 0) {
 		/* New server process */
-		ret = execlp("./server", &server_service, &server_id,
-					(char_t *)NULL);
+		ret = execlp("./broker", name, (char_t *) NULL);
 		if (ret == -1) {
-			perror("Error execlp on restarting server");
+			perror("Error execlp on restarting broker");
 			exit(EXIT_FAILURE);
 		}
 	}

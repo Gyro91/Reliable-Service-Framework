@@ -16,7 +16,8 @@
 
 #define ROUTER_POLL_INDEX 0
 #define REG_POLL_INDEX 1
-#define DEALER_POLL_INDEX 2
+#define HC_POLL_INDEX 2
+#define DEALER_POLL_INDEX 3
 
 /**
  * @class Broker
@@ -41,6 +42,7 @@ private:
 	std::vector<zmq::socket_t*> dealer;
 	zmq::socket_t *reg;
 	zmq::socket_t *router;
+	zmq::socket_t *hc;
 	/* Services Database */
 	ServiceDatabase *db;
 	/* Vector of available services */
@@ -60,6 +62,8 @@ private:
 	void get_response(uint32_t dealer_index);
 	/* Function for printing the available services */
 	void print_available_services();
+	/* Function for sending a pong to the health checker */
+	void pong_health_checker();
 public:
 	Broker(uint8_t nmr, uint16_t port_router, uint16_t port_reg);
 	void step();

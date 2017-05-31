@@ -34,6 +34,7 @@
 #define NO_PONG -1
 
 #define SERVER_PONG_PORT 7000
+#define BROKER_PONG_PORT 8000
 
 /**
  * @brief      client request module for the service

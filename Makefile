@@ -1,5 +1,5 @@
 CC = g++
-CFLAGS = -Wall -std=c++11 -g
+CFLAGS = -Wall -std=c++11 -g -pedantic
 LDFLAGS = -L/usr/local/lib -lzmq 
 
 EXEC_1 = depl_unit
@@ -28,11 +28,16 @@ SOURCES_5 = $(wildcard src/health_checker_server/*.cpp) $(wildcard src/framework
 PATH_5 = src/health_checker_server/
 OBJECTS_5 = $(SOURCES_5:.cpp=.o)
 
+EXEC_6 = health_checker_broker
+SOURCES_6 = $(wildcard src/health_checker_broker/*.cpp) $(wildcard src/framework/*.cpp) 
+PATH_6 = src/health_checker_broker/
+OBJECTS_6 = $(SOURCES_6:.cpp=.o)
+
 SOURCES_U = $(wildcard src/utilities/*.cpp)
 PATH_U = src/utilities/
 OBJECTS_U = $(SOURCES_U:.cpp=.o)
 
-all: $(EXEC_1) $(EXEC_2) $(EXEC_3) $(EXEC_4) $(EXEC_5)
+all: $(EXEC_1) $(EXEC_2) $(EXEC_3) $(EXEC_4) $(EXEC_5) $(EXEC_6)
 
 $(EXEC_1): $(OBJECTS_1) $(OBJECTS_U)
 	$(CC) $(OBJECTS_1) $(OBJECTS_U) -o $(EXEC_1) $(LDFLAGS) 
@@ -48,6 +53,9 @@ $(EXEC_4): $(OBJECTS_4) $(OBJECTS_U)
 
 $(EXEC_5): $(OBJECTS_5) $(OBJECTS_U)
 	$(CC) $(OBJECTS_5) $(OBJECTS_U) -o $(EXEC_5) $(LDFLAGS)
+
+$(EXEC_6): $(OBJECTS_6) $(OBJECTS_U)
+	$(CC) $(OBJECTS_6) $(OBJECTS_U) -o $(EXEC_6) $(LDFLAGS)
 		
 $(PATH_1)%.o: $(PATH_1)%.cpp 
 	$(CC) -c $(CFLAGS) $< -o $@
@@ -63,6 +71,9 @@ $(PATH_4)%.o: $(PATH_4)%.cpp
 	
 $(PATH_5)%.o: $(PATH_5)%.cpp 
 	$(CC) -c $(CFLAGS) $< -o $@
+
+$(PATH_6)%.o: $(PATH_6)%.cpp 
+	$(CC) -c $(CFLAGS) $< -o $@
 	
 $(PATH_U)%.o: $(PATH_U)%.cpp 
 	$(CC) -c $(CFLAGS) $< -o $@
@@ -73,6 +84,7 @@ clean:
 	rm -rf $(EXEC_3) $(OBJECTS_3)
 	rm -rf $(EXEC_4) $(OBJECTS_4)
 	rm -rf $(EXEC_5) $(OBJECTS_5)
+	rm -rf $(EXEC_6) $(OBJECTS_6)
 	rm -rf $(OBJECTS_U)
 
 clean_$(EXEC_1):
@@ -89,3 +101,6 @@ clean_$(EXEC_4):
 	
 clean_$(EXEC_5):
 	rm -rf $(EXEC_5) $(OBJECTS_5) $(OBJECTS_U)
+
+clean_$(EXEC_6):
+	rm -rf $(EXEC_6) $(OBJECTS_6) $(OBJECTS_U)
