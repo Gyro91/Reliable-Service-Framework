@@ -89,7 +89,7 @@ public:
 		service_type_t service);
 	void delete_request(service_type_t service, uint32_t client_id);
 	void register_pong(uint8_t id_copy, service_type_t service);
-	void check_pong(std::vector<service_type_t> available_services);
+	void check_pong(service_type_t service);
 	uint8_t get_reliable_copies(service_type_t service);
 	void print_htable();
 

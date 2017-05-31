@@ -26,14 +26,14 @@ extern zmq::socket_t* add_socket(zmq::context_t *, std::string, uint16_t,
 
 extern void deployment(uint8_t, uint8_t, pid_t *, int32_t *);
 
-extern void time_copy(struct timespec *dst, const struct timespec *src);
+extern void time_copy(struct timespec *, const struct timespec *);
 
-extern void time_add_ms(struct timespec *dst, long int ms);
+extern void time_add_ms(struct timespec *, int64_t);
 
-extern void time_add_ns(struct timespec *dst, long int ns);
+extern void time_add_ns(struct timespec *, int64_t);
 
-extern int32_t time_cmp(struct timespec *t1, struct timespec *t2);
+extern int32_t time_cmp(struct timespec *, struct timespec *t2);
 
-
+extern void busy_wait(uint32_t );
 
 #endif /* INCLUDE_CHECK_UTIL_HPP_ */

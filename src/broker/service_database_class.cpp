@@ -242,37 +242,32 @@ void ServiceDatabase::register_pong(uint8_t id_copy, service_type_t service)
  * @param available_services vector of available services
  */
  
-void ServiceDatabase::check_pong(std::vector<service_type_t> available_services)
+void ServiceDatabase::check_pong(service_type_t service)
 {	
 	uint8_t unreliable_units = 0;
 	std::unordered_map<service_type_t, service_record, 
 		service_type_hash>::iterator it;
-		
-	for (uint32_t i = 0; i < available_services.size(); i++) {
-		it = services_db.find(available_services[i]);
-		for (uint8_t j = 0; j < nmr; j++)
-			if (!it->second.new_pong[j] && 
-				it->second.lost_pong[j] < LIVENESS) {
-				/* It is pong loss */
-				it->second.lost_pong[j]++;
-				std::cout << (int) it->second.lost_pong[j] << 
-				std::endl;
-				/* If the number of pong loss is equal to 
-				 * liveness, the unit is unreliable */
-				if (it->second.lost_pong[j] == LIVENESS)
-					unreliable_units++;
-			} else if (it->second.new_pong[j]) {
-				it->second.new_pong[j] = false;
-				/* Restarting to count */
-				it->second.lost_pong[j] = 0;
-			}
-				
-		std::cout << (int) unreliable_units << std::endl;			
-		it->second.num_copies_reliable -= unreliable_units;
-		it->second.num_copies_registered -= unreliable_units;
-		unreliable_units = 0;
-	}
 
+	it = services_db.find(service);
+	for(uint8_t j = 0; j < nmr; j++)
+		if (!it->second.new_pong[j] && 
+			it->second.lost_pong[j] < LIVENESS) {
+			/* It is pong loss */
+			it->second.lost_pong[j]++;
+			std::cout << (int)it->second.lost_pong[j] << std::endl;
+			/* If the number of pong loss is equal to
+			 * liveness, the unit is unreliable */
+			if (it->second.lost_pong[j] == LIVENESS)
+				unreliable_units++;
+		} else if (it->second.new_pong[j]) {
+			it->second.new_pong[j] = false;
+			/* Restarting to count */
+			it->second.lost_pong[j] = 0;
+		}
+
+	std::cout << (int32_t) unreliable_units << std::endl;
+	it->second.num_copies_reliable -= unreliable_units;
+	it->second.num_copies_registered -= unreliable_units;
 }
 
 /**

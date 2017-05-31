@@ -80,15 +80,10 @@ Broker::~Broker()
  */
 
 void Broker::step()
-{	
-	struct timespec tmp_t, time_t;
-	
+{		
 	for (;;) {
-		clock_gettime(CLOCK_MONOTONIC, &tmp_t);
-		time_add_ms(&tmp_t, 1000);
-		
 		zmq::poll(items, HEARTBEAT_INTERVAL);
-		clock_gettime(CLOCK_MONOTONIC, &time_t);
+		clock_gettime(CLOCK_MONOTONIC, &now);
 
 		
 		/* Check the ping from the health checker*/
@@ -99,32 +94,25 @@ void Broker::step()
 			
 		}
 		/* Check for a registration request */
-		if (items[REG_POLL_INDEX].revents & ZMQ_POLLIN) {
-			get_registration();
-			
-		}
+		if (items[REG_POLL_INDEX].revents & ZMQ_POLLIN) 
+			get_registration();			
+	
 		/* Check for messages on the ROUTER socket */
-		else if (items[ROUTER_POLL_INDEX].revents & ZMQ_POLLIN) {
-			get_request();
-			
-		} 
-		else {	
-			/* Check for messages on the DEALER sockets */
-			for (uint32_t i = 0; i < dealer.size(); i++) 
-				if (items[i + DEALER_POLL_INDEX].revents & 
-					ZMQ_POLLIN) { 
-					get_response(i);
-					
-				}			
-		}
+		if (items[ROUTER_POLL_INDEX].revents & ZMQ_POLLIN) 
+			get_request();		
 		
-		if (time_cmp(&time_t, &tmp_t) == 1) {
-			std::cout << "Heartbeat" << std::endl;
-			
-			db->print_htable();
-			if (available_services.size() > 0) {
-				db->check_pong(available_services);
-				ping_servers();
+		/* Check for messages on the DEALER sockets */
+		for (uint32_t i = 0; i < dealer.size(); i++) 
+			if (items[i + DEALER_POLL_INDEX].revents & 
+				ZMQ_POLLIN) 
+				get_response(i);	
+		
+		for (uint32_t i = 0; i < timeout.size(); i++) {
+			if (time_cmp(&now, &timeout[i]) == 1) {
+				std::cout << "Heartbeat" << std::endl;
+				db->check_pong(available_services[i]);
+				ping_server(i);
+				update_timeout(available_services[i]);
 			}
 		}
 	}
@@ -194,6 +182,8 @@ void Broker::get_request()
 			send_multi_msg(dealer[ret], buffer_in);
 		/* Saving the request in the db */
 		db->push_request(&request_record, request.service);
+		/* Postponing timeout */
+		update_timeout(request.service);
 	}
 }
 
@@ -238,6 +228,11 @@ void Broker::get_registration()
 				available_services.push_back(rm.service);
 				/* Add a dealer port */
 				add_dealer(ret);
+				/* Setting the timeout for the copies */
+				struct timespec timeout_tmp;
+				clock_gettime(CLOCK_MONOTONIC, &timeout_tmp);
+				time_add_ms(&timeout_tmp, HEARTBEAT_INTERVAL);
+				timeout.push_back(timeout_tmp);
 			}
 			db->print_htable();
 			print_available_services();
@@ -289,10 +284,10 @@ void Broker::get_response(uint32_t dealer_index)
 		db->register_pong(server_reply.id, server_reply.service);
 	} else {
 		num_copies = db->push_result(&server_reply, client_id);
-		if(num_copies == nmr) {
+		if (num_copies == nmr) {
 			ret = vote(db->get_result(server_reply.service, 
 				client_id), result);
-			if(ret >= 0) {
+			if (ret >= 0) {
 				/* Replace the data frame with the
 				 * one obtained from the voter.
 				 */
@@ -361,6 +356,32 @@ void Broker::ping_servers()
 }
 
 /**
+ * @brief It sends a ping to a specific group of servers
+ */
+ 
+void Broker::ping_server(uint8_t i)
+{
+	service_module sm;
+	uint8_t num_copies_reliable;
+	std::vector<zmq::message_t> buffer_in(NUM_FRAMES);
+	char_t id_ping[LENGTH_ID_FRAME];
+	
+	id_ping[0] = 0;
+	memset((id_ping + 1), 'a', LENGTH_ID_FRAME - 1);
+	
+	/* In order to reuse the same dealer port for receiving pong and
+	 * results we have to emulate the router-dealer-rep pattern */
+	sm.heartbeat = true;
+	buffer_in[ID_FRAME].rebuild((void*) &id_ping[0], sizeof(id_ping));
+	buffer_in[EMPTY_FRAME].rebuild((void*) "", 0);
+	buffer_in[DATA_FRAME].rebuild((void*) &sm, sizeof(service_module));
+	num_copies_reliable = db->get_reliable_copies(available_services[i]);
+
+	for(uint8_t j = 0; j < num_copies_reliable; j++)
+		send_multi_msg(dealer[i], buffer_in);
+}
+
+/**
  * @brief It prints all the available services 
  */
  
@@ -381,4 +402,18 @@ void Broker::pong_health_checker()
 	
 	/* Send the pong */
 	hc->send(msg);
+}
+
+void Broker::update_timeout(service_type_t service)
+{
+	uint32_t i;
+	struct timespec timeout_tmp;
+	
+	for (i = 0; i < available_services.size(); i++)
+		if (available_services[i] == service)
+			break;
+	
+	clock_gettime(CLOCK_MONOTONIC, &timeout_tmp);
+	time_add_ms(&timeout_tmp, HEARTBEAT_INTERVAL);
+	timeout[i] = timeout_tmp;
 }

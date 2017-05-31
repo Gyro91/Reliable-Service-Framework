@@ -175,12 +175,12 @@ void send_multi_msg(zmq::socket_t *skt, std::vector<zmq::message_t> &msg)
 	
 	for (i = 0; i < msg.size() - 1; i++) {
 		tmp.rebuild(msg[i].data(), msg[i].size());
-		skt->send(tmp, ZMQ_SNDMORE);
+		skt->send(tmp, ZMQ_SNDMORE | ZMQ_DONTWAIT);
 	}
 
 	/* Last message in the sequence */
 	tmp.rebuild(msg[i].data(), msg[i].size());
-	skt->send(tmp, 0);
+	skt->send(tmp, 0 | ZMQ_DONTWAIT);
 }
 
 
@@ -249,4 +249,20 @@ int32_t time_cmp(struct timespec *t1, struct timespec *t2)
 		return -1;
 	
 	return 0;
+}
+
+/**
+ * @brief It does a busy wait
+ * @param ms amount of milliseconds of busy wait
+ */
+ 
+void busy_wait(uint32_t ms)
+{
+	struct timespec t, now;
+
+	clock_gettime(CLOCK_MONOTONIC, &t);
+	time_add_ms(&t, ms);
+	do {
+		clock_gettime(CLOCK_MONOTONIC, &now);
+	} while(time_cmp(&now, &t) < 0);
 }

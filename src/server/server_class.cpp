@@ -5,6 +5,7 @@
 #include <iostream>
 #include <stdio.h>
 #include <time.h>
+#include <pthread.h>
 #include "../../include/server_class.hpp"
 #include "../../include/communication.hpp"
 #include "../../include/util.hpp"
@@ -27,9 +28,10 @@ Server::Server(uint8_t id, uint8_t service_type, std::string broker_address)
 	this->id = id;
 	this->service_type = (service_type_t)service_type;
 	this->broker_address = broker_address;
-
-	service = get_service_body(this->service_type);
-
+	this->service = get_service_body(this->service_type);
+	this->service_thread.service = service;
+	this->service_thread.service_type = this->service_type;
+	
 	/* Allocating ZMQ context */
 	try {
 		context = new zmq::context_t(1);
@@ -70,9 +72,9 @@ Server::~Server()
 
 void Server::step()
 {	 
-	int32_t val, val_elab, ret, ping_loss = 0;
+	int32_t val, ping_loss = 0;
 	struct timespec tmp_t, time_t;
-	bool heartbeat, reg_ok = true;
+	bool heartbeat, reg_ok = false;
 	
 	
 	/* Adding the sockets to the poll set */
@@ -81,30 +83,27 @@ void Server::step()
 	
 	for (;;) {
 		zmq::poll(items, HEARTBEAT_INTERVAL + WCDPING);
-		ret = clock_gettime(CLOCK_MONOTONIC, &tmp_t);
-		if (ret == -1)
-			std::cerr << "Error gettime " << std::endl;
+		clock_gettime(CLOCK_MONOTONIC, &tmp_t);
+		
 		/* Check for a service request */
-		if (!reg_ok && (items[SERVICE_REQUEST_INDEX].revents 
+		if (reg_ok && (items[SERVICE_REQUEST_INDEX].revents 
 			& ZMQ_POLLIN)) {
 			/* Receiving the value to elaborate */
 			heartbeat = receive_request(&val);
+			clock_gettime(CLOCK_MONOTONIC, &time_t);
+			time_add_ms(&time_t, 
+					HEARTBEAT_INTERVAL + WCDPING);
 			if (!heartbeat) {
-				/* Elaborating */
-				val_elab = service(val);
-				sleep(1);
-				/* Sending back the result */
-				deliver_service(val_elab);
+				create_thread(val);
+//				/* Elaborating */
+//				val_elab = service(val);
+//				//busy_wait(1000);
+//				/* Sending back the result */
+//				deliver_service(val_elab);
 			} else {
 				std::cout << "Server " << (int32_t) id << 
 				": Ping from Broker" << std::endl;
-				ret = clock_gettime(CLOCK_MONOTONIC, &time_t);
-				if (ret == -1)
-					std::cerr << "Error gettime " << 
-					std::endl;
-				else
-					time_add_ms(&time_t, 
-						HEARTBEAT_INTERVAL + WCDPING);
+		
 				pong_broker();
 			}
 		}
@@ -115,7 +114,7 @@ void Server::step()
 			pong_health_checker();
 		}
 		
-		if (reg_ok) 
+		if (!reg_ok) 
 			{
 			/* Add the reply socket */
 			this->broker_port = registrator->registration();
@@ -129,9 +128,12 @@ void Server::step()
 				item = {static_cast<void*>(*reply), 0, 
 					ZMQ_POLLIN, 0};
 				items.push_back(item);
-				reg_ok = false;
+				reg_ok = true;
 				ping_loss = 0;
-				
+				clock_gettime(CLOCK_MONOTONIC, &time_t);
+				time_add_ms(&time_t, 
+					HEARTBEAT_INTERVAL + WCDPING);
+
 			} else if (this->broker_port == 0) {
 				std::cerr << "Error in the registration!" << 
 				std::endl;
@@ -142,12 +144,12 @@ void Server::step()
 			}
 		}
  
-		if (time_cmp(&tmp_t, &time_t) == 1) {
+		if (time_cmp(&tmp_t, &time_t) == 1 && reg_ok) {
 			/* Timeout expired. It is a Ping loss from the broker */
 			if (++ping_loss == LIVENESS) {
 				std::cout << "brutte cose" << std::endl;
 				items.erase(items.end() - 1);
-				reg_ok = true;
+				reg_ok = false;
 		
 			}
 		}
@@ -226,4 +228,43 @@ void Server::pong_health_checker()
 	
 	/* Send the pong */
 	hc_pong->send(msg);
+}
+
+void *task(void *arg) 
+{	
+	int32_t val_elab;
+	server_reply_t server_reply;
+	zmq::message_t msg(sizeof(server_reply_t));
+	service_thread_t *st = static_cast<service_thread_t *> (arg);
+	
+	val_elab = st->service(st->parameter);
+	
+	server_reply.id = NO_PONG;
+	server_reply.result = val_elab;
+	server_reply.service = st->service_type;
+	
+	memcpy(msg.data(), (void *) &server_reply, sizeof(server_reply_t));
+	st->skt->send(msg);
+	std::cout << "Thread " << (int32_t)st->id << " sent: " << val_elab <<
+		std::endl;
+	
+	
+	pthread_exit(NULL);
+}
+
+void Server::create_thread(int32_t parameter)
+{
+	pthread_t tid;
+	int32_t ret;
+	
+	service_thread.skt = reply;
+	service_thread.parameter = parameter;
+	
+	ret = pthread_create(&tid, NULL, task, 
+		(void *) &service_thread);
+	if (ret != 0) {
+		perror("Errror pthread_create");
+		exit(EXIT_FAILURE);
+	}
+	
 }

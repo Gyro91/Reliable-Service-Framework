@@ -43,7 +43,7 @@ $(EXEC_1): $(OBJECTS_1) $(OBJECTS_U)
 	$(CC) $(OBJECTS_1) $(OBJECTS_U) -o $(EXEC_1) $(LDFLAGS) 
 
 $(EXEC_2): $(OBJECTS_2) $(OBJECTS_U)
-	$(CC) $(OBJECTS_2) $(OBJECTS_U) -o $(EXEC_2) $(LDFLAGS) 
+	$(CC) $(OBJECTS_2) $(OBJECTS_U) -lpthread -o $(EXEC_2) $(LDFLAGS) 
 
 $(EXEC_3): $(OBJECTS_3) $(OBJECTS_U)
 	$(CC) $(OBJECTS_3) $(OBJECTS_U) -o $(EXEC_3) $(LDFLAGS) 
@@ -103,4 +103,4 @@ clean_$(EXEC_5):
 	rm -rf $(EXEC_5) $(OBJECTS_5) $(OBJECTS_U)
 
 clean_$(EXEC_6):
-	rm -rf $(EXEC_6) $(OBJECTS_6) $(OBJECTS_U)
+	rm -rf $(EXEC_6) $(OBJECTS_6)gi $(OBJECTS_U)

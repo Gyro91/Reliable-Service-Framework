@@ -9,6 +9,7 @@
 #include <zmq.hpp>
 #include <string>
 #include <unistd.h>
+#include <time.h>
 #include <list>
 #include "types.hpp"
 #include "service.hpp"
@@ -48,10 +49,16 @@ private:
 	/* Vector of available services */
 	std::vector<service_type_t> available_services;
 	
+	/* Vectors of times for heartbeating */
+	std::vector<struct timespec> timeout;
+	struct timespec now;
+	
 	/* Function for voting */
 	uint8_t vote(std::vector<int32_t> values, int32_t &result);
 	/* Function for sending a ping to all the servers */
 	void ping_servers();
+	/* Function for sending a ping to a group of servers */
+	void ping_server(uint8_t i);
 	/* Function for adding a dealer socket */
 	void add_dealer(uint16_t dealer_port);
 	/* Function to get a request from the client */
@@ -64,6 +71,8 @@ private:
 	void print_available_services();
 	/* Function for sending a pong to the health checker */
 	void pong_health_checker();
+	/* Updates the timeout for server copies */
+	void update_timeout(service_type_t service);
 public:
 	Broker(uint8_t nmr, uint16_t port_router, uint16_t port_reg);
 	void step();
