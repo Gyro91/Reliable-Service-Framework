@@ -16,13 +16,14 @@ int32_t main(int32_t argc, char_t* argv[])
 {	
 	int32_t ret;
 	HealthCheckerBroker* hcb;
+	char_t name[7] = "broker";
 	pid_t pid;
 	
 	/* Creating the Broker */
 	pid = fork();
 	if (pid == 0) {
 		/* New server process */
-		ret = execlp("./broker", (char_t *)NULL);
+		ret = execlp("./broker", name, (char_t *) NULL);
 		if (ret == -1) {
 			perror("Error execlp on restarting broker");
 			exit(EXIT_FAILURE);

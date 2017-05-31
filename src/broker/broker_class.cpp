@@ -81,29 +81,32 @@ Broker::~Broker()
 
 void Broker::step()
 {	
-	bool timeout;
+	struct timespec tmp_t, time_t;
 	
 	for (;;) {
-
+		clock_gettime(CLOCK_MONOTONIC, &tmp_t);
+		time_add_ms(&tmp_t, 1000);
+		
 		zmq::poll(items, HEARTBEAT_INTERVAL);
-		timeout = true;
+		clock_gettime(CLOCK_MONOTONIC, &time_t);
+
 		
 		/* Check the ping from the health checker*/
 		if (items[HC_POLL_INDEX].revents & ZMQ_POLLIN) {
 			std::cout << "Broker: Received ping from HC" 
 				<< std::endl;
 			pong_health_checker();
-			timeout = false;
+			
 		}
 		/* Check for a registration request */
 		if (items[REG_POLL_INDEX].revents & ZMQ_POLLIN) {
 			get_registration();
-			timeout = false;
+			
 		}
 		/* Check for messages on the ROUTER socket */
 		else if (items[ROUTER_POLL_INDEX].revents & ZMQ_POLLIN) {
 			get_request();
-			timeout = false;
+			
 		} 
 		else {	
 			/* Check for messages on the DEALER sockets */
@@ -111,11 +114,11 @@ void Broker::step()
 				if (items[i + DEALER_POLL_INDEX].revents & 
 					ZMQ_POLLIN) { 
 					get_response(i);
-					timeout = false;
+					
 				}			
 		}
 		
-		if (timeout) {
+		if (time_cmp(&time_t, &tmp_t) == 1) {
 			std::cout << "Heartbeat" << std::endl;
 			
 			db->print_htable();

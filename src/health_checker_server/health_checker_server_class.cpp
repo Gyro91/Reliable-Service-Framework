@@ -48,7 +48,7 @@ void HealthCheckerServer::step()
 	pong_arrived = false;
 
 	for (;;) {
-		zmq::poll(&item, 1, HEARTBEAT_INTERVAL);
+		zmq::poll(&item, 1, HC_HEARTBEAT_INTERVAL);
 		
 		timeout = true;
 		
