@@ -192,7 +192,7 @@ void Broker::get_registration()
 {	
 	int32_t more;
 	size_t more_size;
-	bool first_time = true;
+	bool already_registered = false, ready = false;
 	zmq::message_t message;
 
 	for (uint8_t i = 0; i < ENVELOPE; i++) {
@@ -204,7 +204,6 @@ void Broker::get_registration()
 		if (more == 1) 
 			reg->send(message, ZMQ_SNDMORE);
 		if (!more) {
-			bool ready = false;
 			/* Receiving the registration module */
 			std::cout << "Receiving registration" 
 			<< std::endl;
@@ -216,9 +215,12 @@ void Broker::get_registration()
 			uint16_t ret = 
 			db->push_registration(&rm,
 				available_dealer_port, ready);
-		
+			
+			for (uint32_t i = 0; i < available_services.size(); i++)
+				if (available_services[i] == rm.service)
+					already_registered = true;
 			/* If all the copies are registered */
-			if (ready) {
+			if (ready && !already_registered) {
 				/* Make the service available */
 				available_services.push_back(rm.service);
 				/* Add a dealer port */

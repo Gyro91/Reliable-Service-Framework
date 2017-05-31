@@ -107,7 +107,14 @@ void Server::step()
 						HEARTBEAT_INTERVAL + WCDPING);
 				pong_broker();
 			}
-		} 
+		}
+		
+		if (items[SERVER_PONG_INDEX].revents & ZMQ_POLLIN) {
+			/* Receive the ping from the health checker */
+			std::cout << "Received ping from HC" << std::endl;
+			pong_health_checker();
+		}
+		
 		if (reg_ok) 
 			{
 			/* Add the reply socket */
@@ -130,15 +137,9 @@ void Server::step()
 				std::endl;
 				exit(EXIT_FAILURE);
 			} else if (this->broker_port == -1) {
-				std::cout << "timeout send expired" << 
+				std::cout << "timeout receive expired" << 
 				std::endl;
 			}
-		}
-		
-		if (items[SERVER_PONG_INDEX].revents & ZMQ_POLLIN) {
-			/* Receive the ping from the health checker */
-			std::cout << "Received ping from HC" << std::endl;
-			pong_health_checker();
 		}
  
 		if (time_cmp(&tmp_t, &time_t) == 1) {

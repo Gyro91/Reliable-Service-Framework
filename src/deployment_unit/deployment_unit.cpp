@@ -70,7 +70,7 @@ void deployment(uint8_t service, uint8_t num_copy_server,
 			/* Start the health checker process */
 			hc_pid = fork();
 			if (hc_pid == 0) {
-				ret = execlp("./health_checker", 
+				ret = execlp("./health_checker_server", 
 					id_char, &server_service,
 						pid_char, (char_t *)NULL);
 				if (ret == -1) {

@@ -1,9 +1,9 @@
+#ifndef INCLUDE_HEALTH_CHECKER_CLASS_HPP_
+#define INCLUDE_HEALTH_CHECKER_CLASS_HPP_
+
 #include <zmq.hpp>
 #include <string>
 #include "types.hpp"
-
-#ifndef INCLUDE_HEALTH_CHECKER_CLASS_HPP_
-#define INCLUDE_HEALTH_CHECKER_CLASS_HPP_
 
 #define HEARTBEAT_LIVENESS 3
 #define SRV_OK 0
@@ -11,30 +11,28 @@
 
 class  HealthChecker {
 	
-private:
+protected:
 	
 	/* ZMQ context */
 	zmq::context_t *ctx;
 	/* ZMQ socket used to send pings */
 	zmq::socket_t *hb_skt;
 	zmq::pollitem_t item;
-	
-	/* Server information */
-	uint8_t srv_id;
-	pid_t srv_pid;
-	uint8_t srv_service;
-	uint16_t srv_port;
+	/* Communication port */
+	uint16_t port;
+	/* Monitored process pid */
+	pid_t pid;
 	/* Heartbeat liveness */
 	uint8_t hb_liveness;
 	
-	/* Private function */
+	
+	/* Private functions */
 	void context_init();
-	void restart_server();
+	virtual void restart_process() = 0;
 public:
-	HealthChecker(pid_t srv_pid, uint8_t srv_id, uint8_t srv_service, 
-		uint16_t srv_port);
-	void step();
-	~HealthChecker();
+	HealthChecker(pid_t pid, uint16_t port);
+	virtual void step() = 0;
+	virtual ~HealthChecker();
 };
 
 #endif /* INCLUDE_HEALTH_CHECKER_CLASS_HPP_ */

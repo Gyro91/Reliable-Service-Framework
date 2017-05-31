@@ -29,7 +29,7 @@ Registrator::Registrator(std::string broker_address, service_type_t service,
 	/* Create the ZMQ Socket to register the service */
 	reg = add_socket(ctx, broker_address, reg_port, ZMQ_REQ, CONNECT);
 	
-	reg->setsockopt(ZMQ_RCVTIMEO, HEARTBEAT_INTERVAL);
+	reg->setsockopt(ZMQ_RCVTIMEO, TIMEOUT_RCV);
 }
 
 /**

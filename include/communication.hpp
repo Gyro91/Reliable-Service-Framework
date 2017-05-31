@@ -28,6 +28,7 @@
 #define ENVELOPE 3
 
 #define HEARTBEAT_INTERVAL 1000
+#define TIMEOUT_RCV 500
 #define LIVENESS 3
 #define WCDPING 500
 #define NO_PONG -1

@@ -6,14 +6,14 @@
  
 #include <stdlib.h>
 #include <iostream>
-#include "../../include/health_checker_class.hpp"
+#include "../../include/health_checker_server_class.hpp"
 #include "../../include/communication.hpp"
 
 #define HB_ARGS 3
 
 int32_t main(int32_t argc, char_t* argv[])
 {	
-	HealthChecker* hb;
+	HealthCheckerServer* hb;
 	pid_t srv_pid;
 	uint16_t srv_port;
 	uint8_t srv_id;
@@ -31,7 +31,8 @@ int32_t main(int32_t argc, char_t* argv[])
 
 	/* Instanciate the health checker */
 	try {
-		hb = new HealthChecker(srv_pid, srv_id, srv_service, srv_port);
+		hb = new HealthCheckerServer(srv_pid, srv_port, srv_id, 
+			srv_service);
 	} catch (std::bad_alloc& ba) {
 		std::cerr << "bad_alloc caught: " << ba.what() <<  std::endl;
 		exit(EXIT_FAILURE);

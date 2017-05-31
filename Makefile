@@ -23,9 +23,9 @@ SOURCES_4 = $(wildcard src/client/*.cpp) $(wildcard src/framework/*.cpp)
 PATH_4 = src/client/
 OBJECTS_4 = $(SOURCES_4:.cpp=.o)
 
-EXEC_5 = health_checker
-SOURCES_5 = $(wildcard src/health_checker/*.cpp) $(wildcard src/framework/*.cpp) 
-PATH_5 = src/health_checker/
+EXEC_5 = health_checker_server
+SOURCES_5 = $(wildcard src/health_checker_server/*.cpp) $(wildcard src/framework/*.cpp) 
+PATH_5 = src/health_checker_server/
 OBJECTS_5 = $(SOURCES_5:.cpp=.o)
 
 SOURCES_U = $(wildcard src/utilities/*.cpp)
