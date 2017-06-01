@@ -24,7 +24,7 @@
  */
 
 Server::Server(uint8_t id, uint8_t service_type, std::string broker_address) 
-{	
+{
 	this->id = id;
 	this->service_type = (service_type_t)service_type;
 	this->broker_address = broker_address;
@@ -38,7 +38,7 @@ Server::Server(uint8_t id, uint8_t service_type, std::string broker_address)
 	} catch (std::bad_alloc& ba) {
 		std::cerr << "bad_alloc caught: " << ba.what() << std::endl;
 		exit(EXIT_FAILURE);
-	}	
+	}
 
 	try {
 		registrator = new Registrator(broker_address, 
@@ -50,8 +50,8 @@ Server::Server(uint8_t id, uint8_t service_type, std::string broker_address)
 	}
 
 	/* Add the pong socket */
-	hc_pong = add_socket(context, ANY_ADDRESS, SERVER_PONG_PORT + id,
-		ZMQ_REP, BIND);
+	hc_pong = add_socket(context, ANY_ADDRESS, SERVER_PONG_PORT + id +
+		service_type * MAX_NMR, ZMQ_REP, BIND);
 }
 
 /**
@@ -236,6 +236,8 @@ void *task(void *arg)
 	server_reply_t server_reply;
 	zmq::message_t msg(sizeof(server_reply_t));
 	service_thread_t *st = static_cast<service_thread_t *> (arg);
+	
+	sleep(3);
 	
 	val_elab = st->service(st->parameter);
 	

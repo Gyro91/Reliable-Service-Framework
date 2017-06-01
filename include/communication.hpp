@@ -37,6 +37,8 @@
 #define SERVER_PONG_PORT 7000
 #define BROKER_PONG_PORT 8000
 
+#define MAX_NMR 3
+
 /**
  * @brief      client request module for the service
  */

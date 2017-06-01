@@ -4,6 +4,8 @@
 
 #include "health_checker_class.hpp"
 
+#define HB_ARGS 2
+
 
 class  HealthCheckerServer: public HealthChecker {
 	

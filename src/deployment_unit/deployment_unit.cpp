@@ -29,10 +29,6 @@ void deployment(uint8_t service, uint8_t num_copy_server,
 	int8_t ret;
 	uint8_t i = 0;
 	pid_t hc_pid;
-	std::string pid_str;
-	std::string id_str;
-	char_t const *pid_char;
-	char_t const *id_char;
 	char_t server_service = static_cast<char_t>(service);
 
 	/* Server copies deployment */
@@ -40,9 +36,6 @@ void deployment(uint8_t service, uint8_t num_copy_server,
 		if (i == num_copy_server) {
 			std::cout << "#Deployment_Unit: "
 				"Server copies deployed" << std::endl;
-			for (i = 0; i < num_copy_server; i++)
-				std:: cout << "Pid " << 
-				list_server_pid[i] << std::endl;
 			/* Wait on the children */
 			while (true)
 				wait(&status);
@@ -50,37 +43,17 @@ void deployment(uint8_t service, uint8_t num_copy_server,
 				"my children!" << std::endl;
 			break;
 		}
-		/* Start the server process */
-		
-		list_server_pid[i] = fork();
-		if (list_server_pid[i] == 0) {
-			/* Becoming one of the redundant copies */
-			ret = execlp("./server", &server_service, &i,
-					(char_t *)NULL);
+		/* Start the health checker process */
+		hc_pid = fork();
+		if (hc_pid == 0) {
+			ret = execlp("./health_checker_server", &server_service,
+				&i, (char_t *)NULL);
 			if (ret == -1) {
-				perror("Error execlp on server");
+				perror("Error execlp on healt_checker_server");
 				exit(EXIT_FAILURE);
 			}
-		
-		} else {
-			pid_str = std::to_string(list_server_pid[i]);
-			pid_char = pid_str.c_str();
-			id_str = std::to_string(i);
-			id_char = id_str.c_str();
-			/* Start the health checker process */
-			hc_pid = fork();
-			if (hc_pid == 0) {
-				ret = execlp("./health_checker_server", 
-					id_char, &server_service,
-						pid_char, (char_t *)NULL);
-				if (ret == -1) {
-					perror("Error execlp on healt_checker");
-					exit(EXIT_FAILURE);
-				}
-			} else
-				i++;
-			
-		} 
+		} else
+			i++;
 	}
 }
 

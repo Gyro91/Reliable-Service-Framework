@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <signal.h>
 #include <unistd.h>
+#include <errno.h>
 #include "../../include/health_checker_server_class.hpp"
 #include "../../include/util.hpp"
 #include "../../include/communication.hpp"
@@ -54,7 +55,7 @@ void HealthCheckerServer::step()
 		
 		if (item.revents & ZMQ_POLLIN) {
 			std::cout << "HC: Received pong from server " << 
-				(uint32_t) server_id << std::endl;
+				(int32_t)server_id << std::endl;
 			hb_skt->recv(&buffer);
 			hb_liveness = HEARTBEAT_LIVENESS;
 			timeout = false;
@@ -86,11 +87,20 @@ void HealthCheckerServer::restart_process()
 	char_t server_service = static_cast<char_t>(service);
 	
 	/* Kill the faulty server process and start a new one */
-//	ret = kill(srv_pid, SIGKILL);
-//	if (ret != 0) {
-//		std::cout << "Error during kill!" << std::endl;
-//		exit(EXIT_FAILURE);
-//	}
+	
+	ret = kill(pid, SIGKILL);
+	std::cout << "PID:: " << int32_t(ret) << std::endl;
+	if (ret != 0) {
+		ret = errno;
+		std::cout << "Errno " << errno << std::endl;
+		if (ret == ESRCH) {
+			std::cout << "Server " << (int32_t)server_id <<
+				"already died.";
+		} else {
+			std::cout << "Error during kill!" << std::endl;
+			exit(EXIT_FAILURE);
+		}
+	}
 	pid = fork();
 	if (pid == 0) {
 		/* New server process */
@@ -101,7 +111,4 @@ void HealthCheckerServer::restart_process()
 			exit(EXIT_FAILURE);
 		}
 	}
-
 }
-
-
