@@ -90,8 +90,7 @@ void Broker::step()
 		if (items[HC_POLL_INDEX].revents & ZMQ_POLLIN) {
 			std::cout << "Broker: Received ping from HC" 
 				<< std::endl;
-			pong_health_checker();
-			
+			pong_health_checker();	
 		}
 		/* Check for a registration request */
 		if (items[REG_POLL_INDEX].revents & ZMQ_POLLIN) 
@@ -111,7 +110,7 @@ void Broker::step()
 			if (time_cmp(&now, &timeout[i]) == 1) {
 				std::cout << "Heartbeat" << std::endl;
 				db->check_pong(available_services[i]);
-				ping_server(i);
+				ping_server(i, available_services[i]);
 				update_timeout(available_services[i]);
 			}
 		}
@@ -216,8 +215,8 @@ void Broker::get_registration()
 
 			/* Registering */
 			uint16_t ret = 
-			db->push_registration(&rm,
-				available_dealer_port, ready);
+			db->push_registration(&rm, available_dealer_port, 
+				ready);
 			
 			for (uint32_t i = 0; i < available_services.size(); i++)
 				if (available_services[i] == rm.service)
@@ -267,12 +266,12 @@ void Broker::get_response(uint32_t dealer_index)
 	/* Receiving all the messages */
 
 	for (i = 0; i < ENVELOPE; i++) {
-		dealer[dealer_index]->recv(&buffer_in[i]);
+		dealer[dealer_index]->recv(&buffer_in[i], ZMQ_DONTWAIT);
 		if (i == ID_FRAME) {
 			uint8_t *p = (uint8_t *) buffer_in[i].data();
 			p++;
 			client_id = *((uint32_t *) p);
-		}
+		}			
 	}
 	
 	server_reply = *(static_cast<server_reply_t*>
@@ -293,7 +292,7 @@ void Broker::get_response(uint32_t dealer_index)
 				 */
 				response.service_status = SERVICE_AVAILABLE;
 				response.result = result;
-				buffer_in[DATA_FRAME].rebuild((void*)&response, 
+				buffer_in[DATA_FRAME].rebuild((void*) &response, 
 				sizeof(response_module));
 				send_multi_msg(router, buffer_in);
 			}
@@ -333,52 +332,59 @@ void Broker::ping_servers()
 	service_module sm;
 	uint8_t num_copies_reliable;
 	std::vector<zmq::message_t> buffer_in(NUM_FRAMES);
-	char_t id_ping[LENGTH_ID_FRAME];
+	char_t address_ping[LENGTH_ID_FRAME];
 	
-	id_ping[0] = 0;
-	memset((id_ping + 1), 'a', LENGTH_ID_FRAME - 1);
+	address_ping[0] = 0;
+	memset((address_ping + 1), 'a', LENGTH_ID_FRAME - 1);
 	
 	/* In order to reuse the same dealer port for receiving pong and
 	 * results we have to emulate the router-dealer-rep pattern */
 	sm.heartbeat = true;
 	for (uint32_t i = 0; i < dealer.size(); i++) {
-		buffer_in[ID_FRAME].rebuild((void*) &id_ping[0], 
-			sizeof(id_ping));
+		buffer_in[ID_FRAME].rebuild((void*) &address_ping[0], 
+			sizeof(address_ping));
 		buffer_in[EMPTY_FRAME].rebuild((void*) "", 0);
 		buffer_in[DATA_FRAME].rebuild((void*) &sm,
 			sizeof(service_module));
 		num_copies_reliable = 
 			db->get_reliable_copies(available_services[i]);
 		
-		for(uint8_t j = 0; j < num_copies_reliable; j++)
+		for(uint8_t j = 0; j < num_copies_reliable; j++) 
 			send_multi_msg(dealer[i], buffer_in);
 	}
 }
 
 /**
  * @brief It sends a ping to a specific group of servers
+ * @param i index to the servers group
+ * @param service service type
  */
- 
-void Broker::ping_server(uint8_t i)
+
+void Broker::ping_server(uint8_t i, service_type_t service)
 {
 	service_module sm;
 	uint8_t num_copies_reliable;
 	std::vector<zmq::message_t> buffer_in(NUM_FRAMES);
-	char_t id_ping[LENGTH_ID_FRAME];
+	char_t address_ping[LENGTH_ID_FRAME];
 	
-	id_ping[0] = 0;
-	memset((id_ping + 1), 'a', LENGTH_ID_FRAME - 1);
+	address_ping[0] = 0;
+	memset((address_ping + 1), 'a', LENGTH_ID_FRAME - 1);
 	
 	/* In order to reuse the same dealer port for receiving pong and
 	 * results we have to emulate the router-dealer-rep pattern */
 	sm.heartbeat = true;
-	buffer_in[ID_FRAME].rebuild((void*) &id_ping[0], sizeof(id_ping));
+	sm.seq_id = db->get_ping_id(service);
+	buffer_in[ID_FRAME].rebuild((void*) &address_ping[0], 
+		sizeof(address_ping));
 	buffer_in[EMPTY_FRAME].rebuild((void*) "", 0);
 	buffer_in[DATA_FRAME].rebuild((void*) &sm, sizeof(service_module));
 	num_copies_reliable = db->get_reliable_copies(available_services[i]);
-
-	for(uint8_t j = 0; j < num_copies_reliable; j++)
+	
+	for(uint8_t j = 0; j < num_copies_reliable; j++) {
 		send_multi_msg(dealer[i], buffer_in);
+		std::cout<< "Sending message " << sm.seq_id << " to Server " <<
+		(int32_t)j << std::endl;
+	}
 }
 
 /**

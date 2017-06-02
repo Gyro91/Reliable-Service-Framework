@@ -79,7 +79,7 @@ uint16_t ServiceDatabase::push_registration(registration_module *reg_mod,
 		record.num_copies_reliable = 1;
 		record.dealer_skt_index = next_dealer_skt_index;
 		record.dealer_socket = dealer_socket;
-		
+		record.seq_id_ping = -1;
 		/* Init struct for reliability */
 		for (uint8_t j = 0; j < nmr; j++) {
 			record.lost_pong.push_back(-1);
@@ -239,7 +239,7 @@ void ServiceDatabase::register_pong(uint8_t id_copy, service_type_t service)
  * @brief It checks if there was a pong from the server copies and evaluates if
  * 	  there's an unreliable unit if the number of pong loss is greater than
  * 	  LIVENESS
- * @param available_services vector of available services
+ * @param service service type of the servers to check
  */
  
 void ServiceDatabase::check_pong(service_type_t service)
@@ -249,12 +249,14 @@ void ServiceDatabase::check_pong(service_type_t service)
 		service_type_hash>::iterator it;
 
 	it = services_db.find(service);
-	for(uint8_t j = 0; j < nmr; j++)
+	for (uint8_t j = 0; j < nmr; j++)
 		if (!it->second.new_pong[j] && 
 			it->second.lost_pong[j] < LIVENESS) {
 			/* It is pong loss */
 			it->second.lost_pong[j]++;
-			std::cout << (int)it->second.lost_pong[j] << std::endl;
+			std::cout << "Server " << (int32_t) j << 
+			" Pong loss " << (int)it->second.lost_pong[j] 
+			<< std::endl;
 			/* If the number of pong loss is equal to
 			 * liveness, the unit is unreliable */
 			if (it->second.lost_pong[j] == LIVENESS)
@@ -265,9 +267,9 @@ void ServiceDatabase::check_pong(service_type_t service)
 			it->second.lost_pong[j] = 0;
 		}
 
-	std::cout << (int32_t) unreliable_units << std::endl;
 	it->second.num_copies_reliable -= unreliable_units;
 	it->second.num_copies_registered -= unreliable_units;
+	it->second.seq_id_ping++;
 }
 
 /**
@@ -289,6 +291,27 @@ uint8_t ServiceDatabase::get_reliable_copies(service_type_t service)
 	}
 	
 	return it->second.num_copies_reliable;
+}
+
+/**
+ * @brief Gets the actual ping id for a service
+ * @param service service type
+ * @return It returns the current ping id 
+ */
+ 
+uint64_t ServiceDatabase::get_ping_id(service_type_t service)
+{
+	std::unordered_map<service_type_t, service_record, 
+		service_type_hash>::iterator it = 
+		services_db.find(service);
+		
+	if (it == services_db.end()) {
+		std::cerr << "get_reliable_copies:Service not found" 
+		<< std::endl;
+		exit(EXIT_FAILURE);
+	}
+	
+	return it->second.seq_id_ping;
 }
 
 /**

@@ -31,6 +31,7 @@ Server::Server(uint8_t id, uint8_t service_type, std::string broker_address)
 	this->service = get_service_body(this->service_type);
 	this->service_thread.service = service;
 	this->service_thread.service_type = this->service_type;
+	this->ping_id = 0;
 	
 	/* Allocating ZMQ context */
 	try {
@@ -72,6 +73,7 @@ Server::~Server()
 
 void Server::step()
 {	 
+	uint64_t received_id;
 	int32_t val, ping_loss = 0;
 	struct timespec tmp_t, time_t;
 	bool heartbeat, reg_ok = false;
@@ -82,17 +84,23 @@ void Server::step()
 	items.push_back(item);;
 	
 	for (;;) {
-		zmq::poll(items, HEARTBEAT_INTERVAL + WCDPING);
+		zmq::poll(items, HEARTBEAT_INTERVAL);
 		clock_gettime(CLOCK_MONOTONIC, &tmp_t);
 		
 		/* Check for a service request */
 		if (reg_ok && (items[SERVICE_REQUEST_INDEX].revents 
 			& ZMQ_POLLIN)) {
+			std::cout << "Receiving Server " << (int32_t) id << std::endl;
 			/* Receiving the value to elaborate */
-			heartbeat = receive_request(&val);
+			heartbeat = receive_request(&val, &received_id);
+			std::cout << "Received Server " << (int32_t) id << std::endl;
 			clock_gettime(CLOCK_MONOTONIC, &time_t);
 			time_add_ms(&time_t, 
 					HEARTBEAT_INTERVAL + WCDPING);
+			std::cout << "Message " << received_id << " Server " <<
+			(int32_t) id << " expected " << ping_id << std::endl;
+			if (ping_id == 0)
+				ping_id = received_id;
 			if (!heartbeat) {
 				create_thread(val);
 //				/* Elaborating */
@@ -100,17 +108,19 @@ void Server::step()
 //				//busy_wait(1000);
 //				/* Sending back the result */
 //				deliver_service(val_elab);
-			} else {
+			} else if (received_id == ping_id) {
 				std::cout << "Server " << (int32_t) id << 
-				": Ping from Broker" << std::endl;
-		
+				": Ping " << ping_id << "from Broker" 
+				<< std::endl;
+				ping_id++;
 				pong_broker();
-			}
+			} 
 		}
 		
 		if (items[SERVER_PONG_INDEX].revents & ZMQ_POLLIN) {
 			/* Receive the ping from the health checker */
-			std::cout << "Received ping from HC" << std::endl;
+			std::cout << "Server " << (int32_t) id 
+			<< " Received ping from HC" << std::endl;
 			pong_health_checker();
 		}
 		
@@ -147,7 +157,8 @@ void Server::step()
 		if (time_cmp(&tmp_t, &time_t) == 1 && reg_ok) {
 			/* Timeout expired. It is a Ping loss from the broker */
 			if (++ping_loss == LIVENESS) {
-				std::cout << "brutte cose" << std::endl;
+				std::cout << "Server " << (int32_t)id 
+				<< "brutte cose" << std::endl;
 				items.erase(items.end() - 1);
 				reg_ok = false;
 		
@@ -161,11 +172,12 @@ void Server::step()
  * @brief Receive the request message from the broker and returns 
  * 	  the data contained inside it.
  * @param val	Reference to return the message data.
+ * @param received_id Where to put the seq id of the received message
  * 
  * @return it returns true if it is a broker ping
  */
 
-bool Server::receive_request(int32_t* val)
+bool Server::receive_request(int32_t* val, uint64_t* received_id)
 {
 	zmq::message_t msg;
 	service_module sm;
@@ -178,6 +190,8 @@ bool Server::receive_request(int32_t* val)
 		std::cout << "Server " << (int32_t)id << " received: " <<
 		*val << std::endl;
 	}
+	
+	*received_id = sm.seq_id;
 	
 	return sm.heartbeat;
 }
@@ -249,7 +263,6 @@ void *task(void *arg)
 	st->skt->send(msg);
 	std::cout << "Thread " << (int32_t)st->id << " sent: " << val_elab <<
 		std::endl;
-	
 	
 	pthread_exit(NULL);
 }
