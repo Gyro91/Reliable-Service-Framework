@@ -83,24 +83,11 @@ void HealthCheckerServer::step()
 
 void HealthCheckerServer::restart_process()
 {
-	int8_t ret;
+	int32_t ret;
 	char_t server_service = static_cast<char_t>(service);
 	
 	/* Kill the faulty server process and start a new one */
-	
-	ret = kill(pid, SIGKILL);
-	std::cout << "PID:: " << int32_t(ret) << std::endl;
-	if (ret != 0) {
-		ret = errno;
-		std::cout << "Errno " << errno << std::endl;
-		if (ret == ESRCH) {
-			std::cout << "Server " << (int32_t)server_id <<
-				"already died.";
-		} else {
-			std::cout << "Error during kill!" << std::endl;
-			exit(EXIT_FAILURE);
-		}
-	}
+	kill(pid, SIGKILL);
 	pid = fork();
 	if (pid == 0) {
 		/* New server process */

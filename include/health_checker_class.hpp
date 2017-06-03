@@ -9,6 +9,8 @@
 #define SRV_OK 0
 #define SRV_TIMEOUT 1
 
+#define PID_PATH "/var/tmp/reliab"
+
 class  HealthChecker {
 	
 protected:
@@ -29,6 +31,7 @@ protected:
 	/* Private functions */
 	void context_init();
 	virtual void restart_process() = 0;
+	void check_pid(std::string name);
 public:
 	HealthChecker(pid_t pid, uint16_t port);
 	virtual void step() = 0;
