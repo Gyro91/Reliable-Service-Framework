@@ -93,13 +93,11 @@ void Server::step()
 		/* Check for a service request */
 		if (reg_ok && (items[SERVICE_REQUEST_INDEX].revents 
 			& ZMQ_POLLIN)) {
-			write_log(log_file, my_name, "Receiving from Broker");
 			heartbeat = receive_request(&val, &received_id);
-			write_log(log_file, my_name, "Received from Broker");
 			clock_gettime(CLOCK_MONOTONIC, &time_t);
 			time_add_ms(&time_t, 
 					HEARTBEAT_INTERVAL + WCDPING);
-			write_log(log_file, my_name, "Message " + 
+			write_log(log_file, my_name, " Received message " + 
 				std::to_string(received_id) + " expected " +
 				std::to_string(ping_id));
 			if (ping_id == 0)
@@ -112,9 +110,9 @@ void Server::step()
 //				/* Sending back the result */
 //				deliver_service(val_elab);
 			} else if (received_id == ping_id) {
-				write_log(log_file, my_name, "Ping " + 
+				write_log(log_file, my_name, " Send pong " + 
 					std::to_string(ping_id) + 
-					" from Broker");
+					" to Broker");
 				ping_id++;
 				pong_broker();
 			} 
@@ -160,7 +158,7 @@ void Server::step()
 			write_log(log_file, my_name, "Broker ping timeout");
 			/* Timeout expired. It is a Ping loss from the broker */
 			if (++ping_loss == LIVENESS) {
-				write_log(log_file, my_name, "Broker_dead");
+				write_log(log_file, my_name, "Broker dead");
 				items.erase(items.end() - 1);
 				reg_ok = false;
 			}

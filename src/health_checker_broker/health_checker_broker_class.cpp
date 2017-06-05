@@ -50,8 +50,8 @@ void HealthCheckerBroker::step()
 		timeout = true;
 		
 		if (item.revents & ZMQ_POLLIN) {
-			std::cout << "HC: Received pong from broker" << 
-				std::endl;
+			write_log(log_file, my_name,
+				"Received pong from broker");
 			hb_skt->recv(&buffer);
 			hb_liveness = HEARTBEAT_LIVENESS;
 			timeout = false;
@@ -65,14 +65,14 @@ void HealthCheckerBroker::step()
 				buffer.rebuild(EMPTY_MSG, 0);
 				hb_skt->send(buffer);
 				pong_arrived = false;
-			} else if (--hb_liveness == 0){
+			} else if (--hb_liveness == 0) {
 				hb_liveness = HEARTBEAT_LIVENESS;
-				std::cout << "Broker down... restarting" <<
-					std::endl;
+				write_log(log_file, my_name,
+				          "Broker down... Restarting");
 				restart_process();
-				} else
-					std::cout << "Broker Timeout!" <<
-						std::endl;
+			} else
+				write_log(log_file, my_name,
+				          "Broker timeout");
 		}
 	}
 }
@@ -92,7 +92,8 @@ void HealthCheckerBroker::restart_process()
 			exit(EXIT_FAILURE);
 		}
 	}
-
+	write_log(log_file, my_name, "Broker restarted, new PID: " + 
+		std::to_string(pid));
 }
 
 

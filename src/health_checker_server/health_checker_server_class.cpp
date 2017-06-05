@@ -54,8 +54,9 @@ void HealthCheckerServer::step()
 		timeout = true;
 		
 		if (item.revents & ZMQ_POLLIN) {
-			std::cout << "HC: Received pong from server " << 
-				(int32_t)server_id << std::endl;
+			write_log(log_file, my_name, 
+				"Received pong from server " + std::to_string(
+				(int32_t)server_id));
 			hb_skt->recv(&buffer);
 			hb_liveness = HEARTBEAT_LIVENESS;
 			timeout = false;
@@ -71,12 +72,12 @@ void HealthCheckerServer::step()
 				pong_arrived = false;
 			} else if (--hb_liveness == 0){
 				hb_liveness = HEARTBEAT_LIVENESS;
-				std::cout << "Server down... restarting" <<
-					std::endl;
+				write_log(log_file, my_name,
+					"Server down... Restarting");
 				restart_process();
 				} else
-					std::cout << "Server Timeout!" <<
-						std::endl;
+					write_log(log_file, my_name,
+					"Server timeout");
 		}
 	}
 }
@@ -98,7 +99,7 @@ void HealthCheckerServer::restart_process()
 			exit(EXIT_FAILURE);
 		}
 	}
-	
-	std::cout << "Server " << (int32_t)server_id << " restarted, new PID: "
-		<< pid << std::endl;
+	write_log(log_file, my_name, "Server " + 
+		std::to_string((int32_t)server_id) + " restarted, new PID: " + 
+		std::to_string(pid));
 }

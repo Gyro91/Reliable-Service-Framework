@@ -26,6 +26,10 @@ HealthChecker::HealthChecker(pid_t pid, uint16_t port)
 	this->port = port;
 	this->hb_liveness = HEARTBEAT_LIVENESS;
 	
+	this->my_name = "HC";
+	/* Log directly to the console */
+	log_file = CONSOLE;
+	
 	/* Allocating ZMQ context */
 	context_init();
 }
