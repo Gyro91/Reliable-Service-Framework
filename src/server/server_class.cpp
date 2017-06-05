@@ -54,6 +54,9 @@ Server::Server(uint8_t id, uint8_t service_type, std::string broker_address)
 	/* Add the pong socket */
 	hc_pong = add_socket(context, ANY_ADDRESS, SERVER_PONG_PORT + id +
 		service_type * MAX_NMR, ZMQ_REP, BIND);
+	my_name = "Server" + std::to_string((int32_t)id);
+	/* Log directly to the console */
+	log_file = CONSOLE;
 }
 
 /**
@@ -78,9 +81,6 @@ void Server::step()
 	int32_t val, ping_loss = 0;
 	struct timespec tmp_t, time_t;
 	bool heartbeat, reg_ok = false;
-	std::ostream *log_file = &std::cout;
-	std::string me_str = "Server" + std::to_string((int32_t)id);
-	
 	
 	/* Adding the sockets to the poll set */
 	zmq::pollitem_t item = {static_cast<void*>(*hc_pong), 0, ZMQ_POLLIN, 0};
@@ -93,13 +93,13 @@ void Server::step()
 		/* Check for a service request */
 		if (reg_ok && (items[SERVICE_REQUEST_INDEX].revents 
 			& ZMQ_POLLIN)) {
-			write_log(log_file, me_str, "Receiving from Broker");
+			write_log(log_file, my_name, "Receiving from Broker");
 			heartbeat = receive_request(&val, &received_id);
-			write_log(log_file, me_str, "Received from Broker");
+			write_log(log_file, my_name, "Received from Broker");
 			clock_gettime(CLOCK_MONOTONIC, &time_t);
 			time_add_ms(&time_t, 
 					HEARTBEAT_INTERVAL + WCDPING);
-			write_log(log_file, me_str, "Message " + 
+			write_log(log_file, my_name, "Message " + 
 				std::to_string(received_id) + " expected " +
 				std::to_string(ping_id));
 			if (ping_id == 0)
@@ -112,7 +112,7 @@ void Server::step()
 //				/* Sending back the result */
 //				deliver_service(val_elab);
 			} else if (received_id == ping_id) {
-				write_log(log_file, me_str, "Ping " + 
+				write_log(log_file, my_name, "Ping " + 
 					std::to_string(ping_id) + 
 					" from Broker");
 				ping_id++;
@@ -122,7 +122,7 @@ void Server::step()
 		
 		if (items[SERVER_PONG_INDEX].revents & ZMQ_POLLIN) {
 			/* Receive the ping from the health checker */
-			write_log(log_file, me_str, "Received ping from HC");
+			write_log(log_file, my_name, "Received ping from HC");
 			pong_health_checker();
 		}
 		
@@ -157,16 +157,14 @@ void Server::step()
 		}
  
 		if (time_cmp(&tmp_t, &time_t) == 1 && reg_ok) {
-			write_log(log_file, me_str, "Broker ping timeout");
+			write_log(log_file, my_name, "Broker ping timeout");
 			/* Timeout expired. It is a Ping loss from the broker */
 			if (++ping_loss == LIVENESS) {
-				write_log(log_file, me_str, "Broker_dead");
+				write_log(log_file, my_name, "Broker_dead");
 				items.erase(items.end() - 1);
 				reg_ok = false;
-		
 			}
 		}
-	
 	}
 }
 

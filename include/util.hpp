@@ -12,7 +12,7 @@
 #include "types.hpp"
 #include "service.hpp"
 
-//#define CONSOLE std::cout
+#define CONSOLE &std::cout
 #define ABS_YEAR 1900
 
 

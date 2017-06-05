@@ -59,6 +59,10 @@ Broker::Broker(uint8_t nmr, uint16_t port_router, uint16_t port_reg)
 
 	/* Creating a Service Database*/
 	db = new ServiceDatabase(nmr);
+	
+	/* Log directly to the console */
+	log_file = CONSOLE;
+	my_name = "Broker";
 }
 
 
@@ -80,16 +84,14 @@ Broker::~Broker()
  */
 
 void Broker::step()
-{		
+{
 	for (;;) {
 		zmq::poll(items, HEARTBEAT_INTERVAL);
 		clock_gettime(CLOCK_MONOTONIC, &now);
-
 		
 		/* Check the ping from the health checker*/
 		if (items[HC_POLL_INDEX].revents & ZMQ_POLLIN) {
-			std::cout << "Broker: Received ping from HC" 
-				<< std::endl;
+			write_log(log_file, my_name, "Received ping from HC");
 			pong_health_checker();	
 		}
 		/* Check for a registration request */
@@ -108,7 +110,7 @@ void Broker::step()
 		
 		for (uint32_t i = 0; i < timeout.size(); i++) {
 			if (time_cmp(&now, &timeout[i]) == 1) {
-				std::cout << "Heartbeat" << std::endl;
+				write_log(log_file, my_name, "Heartbeat");
 				db->check_pong(available_services[i]);
 				ping_server(i, available_services[i]);
 				update_timeout(available_services[i]);
@@ -207,12 +209,11 @@ void Broker::get_registration()
 			reg->send(message, ZMQ_SNDMORE);
 		if (!more) {
 			/* Receiving the registration module */
-			std::cout << "Receiving registration" 
-			<< std::endl;
+			write_log(log_file, my_name, "Receiving registration");
 			registration_module rm = 
 			*(static_cast<registration_module*> 
 				(message.data()));
-
+			
 			/* Registering */
 			uint16_t ret = 
 			db->push_registration(&rm, available_dealer_port, 
@@ -278,8 +279,9 @@ void Broker::get_response(uint32_t dealer_index)
 			(buffer_in[DATA_FRAME].data()));
 			
 	if (server_reply.id >= 0) {
-		std::cout << "Pong from Server" << (int32_t) server_reply.id <<
-		" service " << server_reply.service << std::endl;
+		write_log(log_file, my_name, "Pong from Server" + 
+			std::to_string((int32_t) server_reply.id) + " service " +
+			std::to_string(server_reply.service));
 		db->register_pong(server_reply.id, server_reply.service);
 	} else {
 		num_copies = db->push_result(&server_reply, client_id);
@@ -382,8 +384,9 @@ void Broker::ping_server(uint8_t i, service_type_t service)
 	
 	for(uint8_t j = 0; j < num_copies_reliable; j++) {
 		send_multi_msg(dealer[i], buffer_in);
-		std::cout<< "Sending message " << sm.seq_id << " to Server " <<
-		(int32_t)j << std::endl;
+		write_log(log_file, my_name, "Sending message " + 
+			std::to_string(sm.seq_id) + " to Server" + 
+			std::to_string((int32_t) j));
 	}
 }
 
@@ -394,8 +397,8 @@ void Broker::ping_server(uint8_t i, service_type_t service)
 void Broker::print_available_services()
 {	
 	for (uint32_t i = 0; i < available_services.size(); i++)
-		std::cout << "Service " << available_services[i] << " " << 
-		std::endl;
+		write_log(log_file, my_name, "Service " +
+			std::to_string(available_services[i])); 
 }
 
 void Broker::pong_health_checker()

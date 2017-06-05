@@ -48,6 +48,10 @@ private:
 	Registrator *registrator;
 	/* Poll set */
 	std::vector<zmq::pollitem_t> items;
+	/* Output stream for the log file */
+	std::ostream *log_file;
+	/* Identificator used for logging */
+	std::string my_name;
 	
 	/* Receive requests from the broker */
 	bool receive_request(int32_t *val, uint64_t *received_id);

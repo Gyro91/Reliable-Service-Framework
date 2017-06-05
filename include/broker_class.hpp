@@ -48,10 +48,13 @@ private:
 	ServiceDatabase *db;
 	/* Vector of available services */
 	std::vector<service_type_t> available_services;
-	
 	/* Vectors of times for heartbeating */
 	std::vector<struct timespec> timeout;
 	struct timespec now;
+	/* Output stream for the log file */
+	std::ostream *log_file;
+	/* Identificator used for logging */
+	std::string my_name;
 	
 	/* Function for voting */
 	uint8_t vote(std::vector<int32_t> values, int32_t &result);
