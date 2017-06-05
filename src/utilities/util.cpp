@@ -266,3 +266,24 @@ void busy_wait(uint32_t ms)
 		clock_gettime(CLOCK_MONOTONIC, &now);
 	} while(time_cmp(&now, &t) < 0);
 }
+
+/**
+ * @brief Writes a log row to an output stream (either the console or a file)
+ * @param os Output stream to be used
+ * @param who String representing who is writing the log row
+ * @param what Information to log
+ */
+
+void write_log(std::ostream *os, std::string who, std::string what)
+{
+	tm *now_struct;
+	struct timespec now;
+	
+	clock_gettime(CLOCK_REALTIME, &now);
+	now_struct = localtime(&now.tv_sec);
+	*os << now_struct->tm_year + ABS_YEAR << "-" << ++now_struct->tm_mon <<
+		"-" << now_struct->tm_mday << "_" << now_struct->tm_hour << ":"
+		<< now_struct->tm_min << ":" << now_struct->tm_sec << "." << 
+		(int32_t)(now.tv_nsec / 1e6) << " " << who << " " << what <<
+		std::endl;
+}

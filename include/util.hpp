@@ -12,6 +12,9 @@
 #include "types.hpp"
 #include "service.hpp"
 
+//#define CONSOLE std::cout
+#define ABS_YEAR 1900
+
 
 extern void get_arg(int32_t, char_t **, uint8_t &, uint8_t &, char_t);
 extern void get_arg(int32_t, char_t **, service_type_t &, char_t);
@@ -35,5 +38,7 @@ extern void time_add_ns(struct timespec *, int64_t);
 extern int32_t time_cmp(struct timespec *, struct timespec *t2);
 
 extern void busy_wait(uint32_t );
+
+extern void write_log(std::ostream *, std::string, std::string);
 
 #endif /* INCLUDE_CHECK_UTIL_HPP_ */

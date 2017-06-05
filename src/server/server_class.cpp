@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <pthread.h>
+#include <ctime>
 #include "../../include/server_class.hpp"
 #include "../../include/communication.hpp"
 #include "../../include/util.hpp"
@@ -77,6 +78,8 @@ void Server::step()
 	int32_t val, ping_loss = 0;
 	struct timespec tmp_t, time_t;
 	bool heartbeat, reg_ok = false;
+	std::ostream *log_file = &std::cout;
+	std::string me_str = "Server" + std::to_string((int32_t)id);
 	
 	
 	/* Adding the sockets to the poll set */
@@ -90,15 +93,15 @@ void Server::step()
 		/* Check for a service request */
 		if (reg_ok && (items[SERVICE_REQUEST_INDEX].revents 
 			& ZMQ_POLLIN)) {
-			std::cout << "Receiving Server " << (int32_t) id << std::endl;
-			/* Receiving the value to elaborate */
+			write_log(log_file, me_str, "Receiving from Broker");
 			heartbeat = receive_request(&val, &received_id);
-			std::cout << "Received Server " << (int32_t) id << std::endl;
+			write_log(log_file, me_str, "Received from Broker");
 			clock_gettime(CLOCK_MONOTONIC, &time_t);
 			time_add_ms(&time_t, 
 					HEARTBEAT_INTERVAL + WCDPING);
-			std::cout << "Message " << received_id << " Server " <<
-			(int32_t) id << " expected " << ping_id << std::endl;
+			write_log(log_file, me_str, "Message " + 
+				std::to_string(received_id) + " expected " +
+				std::to_string(ping_id));
 			if (ping_id == 0)
 				ping_id = received_id;
 			if (!heartbeat) {
@@ -109,9 +112,9 @@ void Server::step()
 //				/* Sending back the result */
 //				deliver_service(val_elab);
 			} else if (received_id == ping_id) {
-				std::cout << "Server " << (int32_t) id << 
-				": Ping " << ping_id << "from Broker" 
-				<< std::endl;
+				write_log(log_file, me_str, "Ping " + 
+					std::to_string(ping_id) + 
+					" from Broker");
 				ping_id++;
 				pong_broker();
 			} 
@@ -119,8 +122,7 @@ void Server::step()
 		
 		if (items[SERVER_PONG_INDEX].revents & ZMQ_POLLIN) {
 			/* Receive the ping from the health checker */
-			std::cout << "Server " << (int32_t) id 
-			<< " Received ping from HC" << std::endl;
+			write_log(log_file, me_str, "Received ping from HC");
 			pong_health_checker();
 		}
 		
@@ -149,16 +151,16 @@ void Server::step()
 				std::endl;
 				exit(EXIT_FAILURE);
 			} else if (this->broker_port == -1) {
-				std::cout << "timeout receive expired" << 
+				std::cerr << "timeout receive expired" << 
 				std::endl;
 			}
 		}
  
 		if (time_cmp(&tmp_t, &time_t) == 1 && reg_ok) {
+			write_log(log_file, me_str, "Broker ping timeout");
 			/* Timeout expired. It is a Ping loss from the broker */
 			if (++ping_loss == LIVENESS) {
-				std::cout << "Server " << (int32_t)id 
-				<< "brutte cose" << std::endl;
+				write_log(log_file, me_str, "Broker_dead");
 				items.erase(items.end() - 1);
 				reg_ok = false;
 		
