@@ -72,6 +72,7 @@ struct response_module {
 struct service_module {
 	bool heartbeat;	 /* If true it is a ping, otherwise it's a service 
 			  * request */
+	uint64_t seq_id;
 	int32_t parameter;
 };
 

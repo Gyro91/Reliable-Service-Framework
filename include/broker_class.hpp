@@ -58,7 +58,7 @@ private:
 	/* Function for sending a ping to all the servers */
 	void ping_servers();
 	/* Function for sending a ping to a group of servers */
-	void ping_server(uint8_t i);
+	void ping_server(uint8_t i, service_type_t service);
 	/* Function for adding a dealer socket */
 	void add_dealer(uint16_t dealer_port);
 	/* Function to get a request from the client */

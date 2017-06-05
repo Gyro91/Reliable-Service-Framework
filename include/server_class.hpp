@@ -34,6 +34,8 @@ private:
 	service_type_t service_type;
 	/* Service to be provided */
 	service_body service;
+	/* Ping seq id */
+	uint64_t ping_id;
 	/* Address and port for communication */
 	std::string broker_address;
 	int32_t broker_port;
@@ -48,7 +50,7 @@ private:
 	std::vector<zmq::pollitem_t> items;
 	
 	/* Receive requests from the broker */
-	bool receive_request(int32_t *val);
+	bool receive_request(int32_t *val, uint64_t *received_id);
 	/* Send results to the broker */
 	void deliver_service(int32_t val);
 	/* Send a pong to the broker */

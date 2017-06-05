@@ -43,6 +43,8 @@ struct service_record {
 	/* Index to access in the dealer socket list to the dealer socket 
 	 * for this service */
 	uint16_t dealer_skt_index;
+	/* Seq. number for the ping */
+	uint64_t seq_id_ping;
 	/* Vector of active requests from the clients */
 	std::vector<request_record_t> request_records;
 	/* Vectors that points out if in the current timeout it was 
@@ -91,6 +93,7 @@ public:
 	void register_pong(uint8_t id_copy, service_type_t service);
 	void check_pong(service_type_t service);
 	uint8_t get_reliable_copies(service_type_t service);
+	uint64_t get_ping_id(service_type_t service);
 	void print_htable();
 
 	ServiceDatabase(uint8_t nmr);
