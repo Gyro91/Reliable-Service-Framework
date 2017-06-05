@@ -82,11 +82,7 @@ void HealthCheckerBroker::restart_process()
 	int8_t ret;
 	char_t name[7] = "broker";
 	/* Kill the faulty server process and start a new one */
-//	ret = kill(srv_pid, SIGKILL);
-//	if (ret != 0) {
-//		std::cout << "Error during kill!" << std::endl;
-//		exit(EXIT_FAILURE);
-//	}
+	kill(pid, SIGKILL);
 	pid = fork();
 	if (pid == 0) {
 		/* New server process */

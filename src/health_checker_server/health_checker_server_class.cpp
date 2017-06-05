@@ -98,4 +98,7 @@ void HealthCheckerServer::restart_process()
 			exit(EXIT_FAILURE);
 		}
 	}
+	
+	std::cout << "Server " << (int32_t)server_id << " restarted, new PID: "
+		<< pid << std::endl;
 }
