@@ -289,8 +289,7 @@ void Broker::get_response(uint32_t dealer_index)
 			+ std::to_string(server_reply.service));
 		db->register_pong(server_reply.id, server_reply.service);
 	} else {
-		write_log(log_file, my_name, "paolo, ciao: " + std::to_string((int)server_reply.duplicated));
-		if ((int)server_reply.duplicated != 107) {
+		if (!server_reply.duplicated) {
 			num_copies = db->push_result(&server_reply, client_id);
 			if (num_copies > (nmr / 2)) {
 				ret = vote(db->get_result(server_reply.service, 
@@ -354,18 +353,7 @@ int8_t Broker::vote(std::vector<int32_t> values, int32_t &result)
 		result = values[max];
 		return max;
 	} else return -1;
-	/*
-	if (values[0] == values[1] || values[0] == values [2]) {
-		result = values[0];
-		return 0;
-	}
-	else if (values[1] == values[2]) {
-		result = values[1];
-		return 0;
-	}
-	else
-		return -1;
-	*/
+
 }
 
 /**
@@ -485,6 +473,7 @@ void Broker::check_pending_requests()
 		for (uint32_t j = 0; j < pending_requests.size(); j++) {
 			if (time_cmp(&now, &pending_requests[j].timeout) == 1) {
 				ret = vote(pending_requests[j].results, result);
+				write_log(log_file, my_name, "paolo rieccomi dentro" + std::to_string(ret));
 				if (ret >= 0) {
 					response.service_status = 
 						SERVICE_AVAILABLE;
@@ -496,7 +485,6 @@ void Broker::check_pending_requests()
 				address[0] = 0;
 				memcpy((address + 1), &pending_requests[j].
 					client_id, LENGTH_ID_FRAME - 1);
-				response.service_status = SERVICE_AVAILABLE;
 				response.result = result;
 				buffer_in[ID_FRAME].rebuild((void*) &address[0],
 					sizeof(address));
