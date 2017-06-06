@@ -86,7 +86,7 @@ Broker::~Broker()
 void Broker::step()
 {
 	for (;;) {
-		zmq::poll(items, HEARTBEAT_INTERVAL);
+		zmq::poll(items, 0);
 		clock_gettime(CLOCK_MONOTONIC, &now);
 		
 		/* Check the ping from the health checker*/
