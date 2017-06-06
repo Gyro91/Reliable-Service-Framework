@@ -30,6 +30,7 @@
 #define HEARTBEAT_INTERVAL 2000
 #define HC_HEARTBEAT_INTERVAL 5000
 #define TIMEOUT_RCV 500
+#define REQUEST_TIMEOUT 2000
 #define LIVENESS 3
 #define WCDPING 500
 #define NO_PONG -1
@@ -83,11 +84,11 @@ struct service_module {
  */
  
 struct server_reply_t {
+	bool heartbeat;
+	bool duplicated;
 	int32_t result;
 	service_type_t service;
-	int8_t id; /* If id > 0, it is a an heartbeat and the id field is 
-		     * the copy id, otherwise it is -1 and in this response 
-		     * there is the service result */
+	uint8_t id; 
 };
 
 #endif /* INCLUDE_COMMUNICATION_HPP_ */

@@ -8,6 +8,7 @@
 #include <string>
 #include <unordered_map>
 #include "types.hpp"
+#include "util.hpp"
 #include "service.hpp"
 #include "rs_api.hpp"
 
@@ -22,7 +23,11 @@ struct request_record_t {
 	/* Unique identifier of the client */
 	uint32_t client_id;
 	/* Container for the responses of the server copies */
-	std::vector<int32_t> results; 
+	std::vector<int32_t> results;
+	/* Service type */
+	service_type_t service;
+	/* Timeout for the request */ 
+	struct timespec timeout;
 };
 
 /**
@@ -45,6 +50,8 @@ struct service_record {
 	uint16_t dealer_skt_index;
 	/* Seq. number for the ping */
 	uint64_t seq_id_ping;
+	/* Seq. number for the request */
+	uint64_t seq_id_request;
 	/* Vector of active requests from the clients */
 	std::vector<request_record_t> request_records;
 	/* Vectors that points out if in the current timeout it was 
@@ -94,6 +101,9 @@ public:
 	void check_pong(service_type_t service);
 	uint8_t get_reliable_copies(service_type_t service);
 	uint64_t get_ping_id(service_type_t service);
+	std::vector<request_record_t> get_pending_requests(service_type_t 
+		service);
+	uint64_t get_request_id(service_type_t service);
 	void print_htable();
 
 	ServiceDatabase(uint8_t nmr);

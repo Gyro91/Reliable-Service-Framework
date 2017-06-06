@@ -80,6 +80,7 @@ uint16_t ServiceDatabase::push_registration(registration_module *reg_mod,
 		record.dealer_skt_index = next_dealer_skt_index;
 		record.dealer_socket = dealer_socket;
 		record.seq_id_ping = -1;
+		record.seq_id_request = 0;
 		/* Init struct for reliability */
 		for (uint8_t j = 0; j < nmr; j++) {
 			record.lost_pong.push_back(-1);
@@ -122,6 +123,9 @@ void ServiceDatabase::push_request(request_record_t *request_record,
 		std::cerr << "push_request:Service not found" << std::endl;
 		exit(EXIT_FAILURE);
 	}
+
+	clock_gettime(CLOCK_MONOTONIC, &request_record->timeout);
+	time_add_ms(&request_record->timeout, REQUEST_TIMEOUT);
 	
 	(i->second).request_records.push_back(*request_record);
 }
@@ -145,11 +149,12 @@ void ServiceDatabase::delete_request(service_type_t service,
 	}
 	
 	service_record *record = &i->second;
-	
+
 	for (uint32_t j = 0; j < record->request_records.size(); j++) 
-		if (record->request_records[j].client_id == client_id) 
+		if (record->request_records[j].client_id == client_id) {			
 			record->request_records.erase(record->
-			request_records.begin() + j); 
+			request_records.begin() + j); 			
+		}
 }
 
 /**
@@ -172,14 +177,16 @@ int32_t ServiceDatabase::push_result(server_reply_t *server_reply,
 	}
 	
 	service_record *record = &i->second;
-	
+
 	for (uint32_t j = 0; j < record->request_records.size(); j++) {
 		if (record->request_records[j].client_id == client_id) {
 			record->request_records[j].results.push_back
-			(server_reply->result);
+				(server_reply->result);
 			ret = record->request_records[j].results.size();  
 		}
 	}
+	
+	print_htable();
 	
 	return ret;
 }
@@ -315,6 +322,27 @@ uint64_t ServiceDatabase::get_ping_id(service_type_t service)
 }
 
 /**
+ * @brief Gets the actual request id for a service
+ * @param service service type
+ * @return It returns the current request id for the specified service
+ */
+ 
+uint64_t ServiceDatabase::get_request_id(service_type_t service)
+{
+	std::unordered_map<service_type_t, service_record, 
+		service_type_hash>::iterator it = 
+		services_db.find(service);
+		
+	if (it == services_db.end()) {
+		std::cerr << "get_reliable_copies:Service not found" 
+		<< std::endl;
+		exit(EXIT_FAILURE);
+	}
+	
+	return it->second.seq_id_request++;
+}
+
+/**
  * @brief      It prints all the pair (key, value) in the database
  */
 
@@ -336,3 +364,19 @@ void ServiceDatabase::print_htable()
 	}
 }
 
+std::vector<request_record_t> ServiceDatabase::get_pending_requests(
+	service_type_t service)
+{
+	std::vector<request_record_t> pending_requests;
+	auto it = services_db.find(service);
+
+	if (it == services_db.end()) {
+		std::cerr << "get_result:Service not found" << std::endl;
+		exit(EXIT_FAILURE);
+	}
+	
+	for (auto it_v : it->second.request_records)
+		pending_requests.push_back(it_v);
+	
+	return pending_requests;
+}

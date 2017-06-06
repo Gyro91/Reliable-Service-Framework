@@ -70,10 +70,13 @@ bool request_service(request_module &rm, zmq::socket_t *socket, int32_t &result)
     	socket->recv(&reply);
         response = *(static_cast<response_module*> (reply.data()));
         std::cout << "Status " << response.service_status << std::endl;
-        if (response.service_status == SERVICE_NOT_RELIABLE || 
-        	response.service_status ==  SERVICE_NOT_AVAILABLE)
+        if (response.service_status == SERVICE_NOT_RELIABLE) {
+		std::cout << "Service not reliable" << std::endl;
+		return false;
+	} else if (response.service_status ==  SERVICE_NOT_AVAILABLE) {
+		std::cout << "Service not available" << std::endl;
         	return false;
-        
+	}
         result = response.result;
 
         return true;

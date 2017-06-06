@@ -36,6 +36,8 @@ private:
 	service_body service;
 	/* Ping seq id */
 	uint64_t ping_id;
+	/* Ping request id */
+	uint64_t request_id;
 	/* Address and port for communication */
 	std::string broker_address;
 	int32_t broker_port;

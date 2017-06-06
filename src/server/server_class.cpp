@@ -32,7 +32,9 @@ Server::Server(uint8_t id, uint8_t service_type, std::string broker_address)
 	this->service = get_service_body(this->service_type);
 	this->service_thread.service = service;
 	this->service_thread.service_type = this->service_type;
+	this->service_thread.id = id;
 	this->ping_id = 0;
+	this->request_id = 0;
 	
 	/* Allocating ZMQ context */
 	try {
@@ -82,6 +84,8 @@ void Server::step()
 	struct timespec tmp_t, time_t;
 	bool heartbeat, reg_ok = false;
 	
+	server_reply_t server_reply;
+
 	/* Adding the sockets to the poll set */
 	zmq::pollitem_t item = {static_cast<void*>(*hc_pong), 0, ZMQ_POLLIN, 0};
 	items.push_back(item);;
@@ -100,21 +104,33 @@ void Server::step()
 			write_log(log_file, my_name, " Received message " + 
 				std::to_string(received_id) + " expected " +
 				std::to_string(ping_id));
-			if (ping_id == 0)
-				ping_id = received_id;
 			if (!heartbeat) {
-				create_thread(val);
-//				/* Elaborating */
-//				val_elab = service(val);
-//				//busy_wait(1000);
-//				/* Sending back the result */
-//				deliver_service(val_elab);
-			} else if (received_id == ping_id) {
-				write_log(log_file, my_name, " Send pong " + 
-					std::to_string(ping_id) + " to Broker");
-				pong_broker();
-				ping_id++;
+				if (request_id == 0)
+					request_id = received_id;
+				if (received_id == request_id) {
+					request_id++;
+					/* Spawning a thread to service 
+					 * the request */
+					create_thread(val);
+				} else {
+					zmq::message_t msg(
+						sizeof(server_reply_t));
+					server_reply.id = id;
+					server_reply.heartbeat = false;
+					server_reply.service = service_type;
+					server_reply.duplicated = true;
+					memcpy(msg.data(), (void*) 
+						&server_reply, 
+						sizeof(server_reply_t));
+					reply->send(msg);
+				}
+
 			} else {
+				if (ping_id == 0)
+					ping_id = received_id;
+				if (received_id == ping_id) 
+					ping_id++;
+				
 				write_log(log_file, my_name, " Send pong " + 
 					std::to_string(ping_id) + " to Broker");
 				pong_broker();
@@ -231,6 +247,7 @@ void Server::pong_broker()
 	
 	server_reply.id = id; /* Pong from server id */
 	server_reply.service = service_type;
+	server_reply.heartbeat = true;
 	
 	memcpy(msg.data(), (void *) &server_reply, sizeof(server_reply_t));
 	reply->send(msg);
@@ -255,13 +272,15 @@ void *task(void *arg)
 	zmq::message_t msg(sizeof(server_reply_t));
 	service_thread_t *st = static_cast<service_thread_t *> (arg);
 	
-	sleep(3);
+	busy_wait(1000);
 	
 	val_elab = st->service(st->parameter);
 	
-	server_reply.id = NO_PONG;
+	server_reply.id = st->id;
+	server_reply.heartbeat = false;
 	server_reply.result = val_elab;
 	server_reply.service = st->service_type;
+	server_reply.duplicated = false;
 	
 	memcpy(msg.data(), (void *) &server_reply, sizeof(server_reply_t));
 	st->skt->send(msg);

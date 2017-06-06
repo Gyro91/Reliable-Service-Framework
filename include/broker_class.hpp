@@ -57,7 +57,7 @@ private:
 	std::string my_name;
 	
 	/* Function for voting */
-	uint8_t vote(std::vector<int32_t> values, int32_t &result);
+	int8_t vote(std::vector<int32_t> values, int32_t &result);
 	/* Function for sending a ping to all the servers */
 	void ping_servers();
 	/* Function for sending a ping to a group of servers */
@@ -76,6 +76,8 @@ private:
 	void pong_health_checker();
 	/* Updates the timeout for server copies */
 	void update_timeout(service_type_t service);
+	/* Check if the timeout is elapsed for the pending requests */
+	void check_pending_requests();
 public:
 	Broker(uint8_t nmr, uint16_t port_router, uint16_t port_reg);
 	void step();

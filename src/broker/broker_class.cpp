@@ -116,6 +116,8 @@ void Broker::step()
 				update_timeout(available_services[i]);
 			}
 		}
+		
+		check_pending_requests();
 	}
 }
 
@@ -148,6 +150,7 @@ void Broker::get_request()
 	request_module request;
 	response_module response;
 	request_record_t request_record;
+	uint8_t num_copies_reliable;
 	service_module sm;
 	std::vector<zmq::message_t> buffer_in(NUM_FRAMES);
 
@@ -175,11 +178,13 @@ void Broker::get_request()
 	} else {
 		/* Service available */
 		sm.heartbeat = false;
+		sm.seq_id = db->get_request_id(request.service);
 		sm.parameter = request.parameter;
 		buffer_in[DATA_FRAME].rebuild((void*) &sm,
 			sizeof(service_module));
+		num_copies_reliable = db->get_reliable_copies(request.service);
 		/* Forwarding the parameter */
-		for (uint8_t j = 0; j < nmr; j++)
+		for (uint8_t j = 0; j < num_copies_reliable; j++)
 			send_multi_msg(dealer[ret], buffer_in);
 		/* Saving the request in the db */
 		db->push_request(&request_record, request.service);
@@ -278,29 +283,46 @@ void Broker::get_response(uint32_t dealer_index)
 	server_reply = *(static_cast<server_reply_t*>
 			(buffer_in[DATA_FRAME].data()));
 			
-	if (server_reply.id >= 0) {
+	if (server_reply.heartbeat) {
 		write_log(log_file, my_name, "Pong from Server" + 
-			std::to_string((int32_t) server_reply.id) + " service " +
-			std::to_string(server_reply.service));
+			std::to_string((int32_t) server_reply.id) + " service " 
+			+ std::to_string(server_reply.service));
 		db->register_pong(server_reply.id, server_reply.service);
 	} else {
-		num_copies = db->push_result(&server_reply, client_id);
-		if (num_copies == nmr) {
-			ret = vote(db->get_result(server_reply.service, 
-				client_id), result);
-			if (ret >= 0) {
-				/* Replace the data frame with the
-				 * one obtained from the voter.
-				 */
-				response.service_status = SERVICE_AVAILABLE;
-				response.result = result;
-				buffer_in[DATA_FRAME].rebuild((void*) &response, 
-				sizeof(response_module));
-				send_multi_msg(router, buffer_in);
+		write_log(log_file, my_name, "paolo, ciao: " + std::to_string((int)server_reply.duplicated));
+		if ((int)server_reply.duplicated != 107) {
+			num_copies = db->push_result(&server_reply, client_id);
+			if (num_copies > (nmr / 2)) {
+				ret = vote(db->get_result(server_reply.service, 
+					client_id), result);
+				if (ret >= 0) {
+					/* Replace the data frame with the
+					 * one obtained from the voter.
+					 */
+					response.service_status = 
+						SERVICE_AVAILABLE;
+					response.result = result;
+					buffer_in[DATA_FRAME].rebuild((void*)
+						&response, 
+						sizeof(response_module));
+					send_multi_msg(router, buffer_in);
+					/* Deleting service request */
+					db->delete_request(server_reply.service, 
+						client_id);
+				} else if (num_copies == nmr) {
+					response.service_status = 
+						SERVICE_NOT_RELIABLE;
+					response.result = result;
+					buffer_in[DATA_FRAME].rebuild((void*)
+						&response, 
+						sizeof(response_module));
+					send_multi_msg(router, buffer_in);
+					/* Deleting service request */
+					db->delete_request(server_reply.service,
+						client_id);
+					/*Sending not reliable service*/
+				}
 			}
-
-			/* Deleting service request */
-			db->delete_request(server_reply.service, client_id);
 		}
 	}
 }
@@ -311,8 +333,28 @@ void Broker::get_response(uint32_t dealer_index)
  * @return >0 index of the majority value, -1 there is no majority
  */
 
-uint8_t Broker::vote(std::vector<int32_t> values, int32_t &result)
+int8_t Broker::vote(std::vector<int32_t> values, int32_t &result)
 {	
+	std::vector<uint8_t> count;
+	uint8_t max = 0;
+	
+	for (uint8_t i = 0; i < values.size(); i++) {
+		count.push_back(0);
+		for (uint8_t j = 0; j < values.size(); j++) {
+			if (values[i] == values[j])
+				count[i]++;
+		}
+	}
+	
+	for (uint8_t i = 0; i < count.size(); i++)
+			if (count[i] > count[max])
+				max = i;
+				
+	if (count[max] > (nmr / 2)) {
+		result = values[max];
+		return max;
+	} else return -1;
+	/*
 	if (values[0] == values[1] || values[0] == values [2]) {
 		result = values[0];
 		return 0;
@@ -323,6 +365,7 @@ uint8_t Broker::vote(std::vector<int32_t> values, int32_t &result)
 	}
 	else
 		return -1;
+	*/
 }
 
 /**
@@ -425,4 +468,46 @@ void Broker::update_timeout(service_type_t service)
 	clock_gettime(CLOCK_MONOTONIC, &timeout_tmp);
 	time_add_ms(&timeout_tmp, HEARTBEAT_INTERVAL);
 	timeout[i] = timeout_tmp;
+}
+
+void Broker::check_pending_requests()
+{
+	int32_t ret, result;
+	struct timespec now;
+	std::vector<zmq::message_t> buffer_in(NUM_FRAMES);
+	char_t address[LENGTH_ID_FRAME];
+	response_module response;
+	
+	clock_gettime(CLOCK_MONOTONIC, &now);
+	for (uint32_t i = 0; i < available_services.size(); i++) {
+		std::vector<request_record_t> pending_requests = 
+			db->get_pending_requests(available_services[i]);
+		for (uint32_t j = 0; j < pending_requests.size(); j++) {
+			if (time_cmp(&now, &pending_requests[j].timeout) == 1) {
+				ret = vote(pending_requests[j].results, result);
+				if (ret >= 0) {
+					response.service_status = 
+						SERVICE_AVAILABLE;
+				} else {
+					/* Sending not reliable service */
+					response.service_status = 
+						SERVICE_NOT_RELIABLE;
+				}
+				address[0] = 0;
+				memcpy((address + 1), &pending_requests[j].
+					client_id, LENGTH_ID_FRAME - 1);
+				response.service_status = SERVICE_AVAILABLE;
+				response.result = result;
+				buffer_in[ID_FRAME].rebuild((void*) &address[0],
+					sizeof(address));
+				buffer_in[EMPTY_FRAME].rebuild((void*)"", 0);
+				buffer_in[DATA_FRAME].rebuild((void*) &response,
+					sizeof(response_module));
+				send_multi_msg(router, buffer_in);
+				/* Deleting service request */
+				db->delete_request((service_type_t)i,
+					pending_requests[j].client_id);
+			}
+		}
+	}
 }
