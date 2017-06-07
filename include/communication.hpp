@@ -7,6 +7,7 @@
 #define INCLUDE_COMMUNICATION_HPP_
 
 #include "service.hpp"
+#include <string>
 
 #define TCP_PROTOCOL "tcp://"
 #define IPC_PROTOCOL "ipc://"
@@ -46,7 +47,8 @@
  
 struct request_module {
 	service_type_t service;
-	int32_t parameter;
+	char_t parameters[100];
+//	int32_t parameter;
 };
 
 /**
@@ -74,7 +76,7 @@ struct service_module {
 	bool heartbeat;	 /* If true it is a ping, otherwise it's a service 
 			  * request */
 	uint64_t seq_id;
-	int32_t parameter;
+	char_t parameters[100];
 };
 
 /**
@@ -90,5 +92,14 @@ struct server_reply_t {
 	service_type_t service;
 	uint8_t id; 
 };
+
+inline void serialize(std::string &str) {}
+
+template<typename head, typename... tail>
+void serialize(std::string &str, head h, tail... t)
+{
+	str.append(std::to_string(h) + " ");
+	serialize(str, t...);
+}
 
 #endif /* INCLUDE_COMMUNICATION_HPP_ */

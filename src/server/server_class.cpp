@@ -3,6 +3,7 @@
  * 
  */
 #include <iostream>
+#include <sstream> 
 #include <stdio.h>
 #include <time.h>
 #include <pthread.h>
@@ -80,7 +81,8 @@ Server::~Server()
 void Server::step()
 {	 
 	uint64_t received_id;
-	int32_t val, ping_loss = 0;
+	char_t val[100];
+	int32_t ping_loss = 0;
 	struct timespec tmp_t, time_t;
 	bool heartbeat, reg_ok = false;
 	
@@ -97,7 +99,7 @@ void Server::step()
 		/* Check for a service request */
 		if (reg_ok && (items[SERVICE_REQUEST_INDEX].revents 
 			& ZMQ_POLLIN)) {
-			heartbeat = receive_request(&val, &received_id);
+			heartbeat = receive_request(val, &received_id);
 			clock_gettime(CLOCK_MONOTONIC, &time_t);
 			time_add_ms(&time_t, 
 					HEARTBEAT_INTERVAL + WCDPING);
@@ -197,7 +199,7 @@ void Server::step()
  * @return it returns true if it is a broker ping
  */
 
-bool Server::receive_request(int32_t* val, uint64_t* received_id)
+bool Server::receive_request(char_t *val, uint64_t* received_id)
 {
 	zmq::message_t msg;
 	service_module sm;
@@ -206,7 +208,8 @@ bool Server::receive_request(int32_t* val, uint64_t* received_id)
 	sm = *(static_cast<service_module *> (msg.data()));
 	
 	if (sm.heartbeat == false) {
-		*val = sm.parameter;
+		memcpy(val, sm.parameters, sizeof(sm.parameters));
+//		*val = sm.parameter;
 		std::cout << "Server " << (int32_t)id << " received: " <<
 		*val << std::endl;
 	}
@@ -268,13 +271,22 @@ void Server::pong_health_checker()
 void *task(void *arg) 
 {	
 	int32_t val_elab;
+	int32_t par1;
+	int32_t par2;
 	server_reply_t server_reply;
 	zmq::message_t msg(sizeof(server_reply_t));
 	service_thread_t *st = static_cast<service_thread_t *> (arg);
+	std::stringstream par_stream(st->parameters, std::ios_base::in);
 	
 	busy_wait(1000);
 	
-	val_elab = st->service(st->parameter);
+	deserialize(par_stream, par1, par2);
+	
+	std::cout << "PAR1: " << par1 << " PAR2: " << par2 << std::endl;
+	
+	service_body<int32_t, int32_t> ciao = std::bind(&increment, std::placeholders::_1);
+	ciao(par1);
+//	val_elab = st->service(par1);
 	
 	server_reply.id = st->id;
 	server_reply.heartbeat = false;
@@ -290,13 +302,13 @@ void *task(void *arg)
 	pthread_exit(NULL);
 }
 
-void Server::create_thread(int32_t parameter)
+void Server::create_thread(std::string parameters)
 {
 	pthread_t tid;
 	int32_t ret;
 	
 	service_thread.skt = reply;
-	service_thread.parameter = parameter;
+	service_thread.parameters = parameters;
 	
 	ret = pthread_create(&tid, NULL, task, 
 		(void *) &service_thread);

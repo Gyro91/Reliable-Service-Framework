@@ -54,6 +54,18 @@ int32_t multiply2(int32_t x)
 }
 
 /**
+ * @brief Sums the parameters togheter
+ * @param x First value to sum
+ * @param y Second value to sum
+ * @return Sum of the first and the second value
+ */
+
+int32_t sum(int32_t x, int32_t y)
+{
+	return x + y;
+}
+
+/**
  * @brief It returns the function pointer to the service
  * @param service It is the service type
  * @retval It is the function pointer to the service
@@ -65,13 +77,20 @@ service_body get_service_body(service_type_t service)
 
 	switch (service) {
 	case INCREMENT:
-		body = &increment;
+//		body = &increment;
+		body = std::bind(&increment, std::placeholders::_1);
 		break;
 	case DECREMENT:
-		body = &decrement;
+//		body = &decrement;
+		body = std::bind(&decrement, std::placeholders::_1);
 		break;
 	case MULTIPLY2:
-		body = &multiply2;
+//		body = &multiply2;
+		body = std::bind(&multiply2, std::placeholders::_1);
+		break;
+	case SUM:
+//		body = &sum;
+		body = std::bind(&sum, std::placeholders::_1, std::placeholders::_2);
 		break;
 	default:
 		std::cerr << "Service not supported! Server Crash" << std::endl;

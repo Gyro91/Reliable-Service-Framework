@@ -8,7 +8,9 @@
 
 #include <zmq.hpp>
 #include <string>
+#include <sstream>
 #include <unistd.h>
+#include <functional>
 #include "types.hpp"
 #include "service.hpp"
 #include "registrator_class.hpp"
@@ -18,8 +20,9 @@
 #define SERVER_PONG_INDEX 0
 
 struct service_thread_t {
-	int32_t parameter;
-	service_body service;
+//	int32_t parameter;
+	std::string parameters;
+	service_body<int32_t> service;
 	service_type_t service_type;
 	uint8_t id;
 	zmq::socket_t *skt;
@@ -33,7 +36,7 @@ private:
 	/* Service type that must be provided */
 	service_type_t service_type;
 	/* Service to be provided */
-	service_body service;
+	service_body<int32_t> service;
 	/* Ping seq id */
 	uint64_t ping_id;
 	/* Ping request id */
@@ -56,7 +59,7 @@ private:
 	std::string my_name;
 	
 	/* Receive requests from the broker */
-	bool receive_request(int32_t *val, uint64_t *received_id);
+	bool receive_request(char_t *val, uint64_t *received_id);
 	/* Send results to the broker */
 	void deliver_service(int32_t val);
 	/* Send a pong to the broker */
@@ -64,12 +67,20 @@ private:
 	/* Receive the ping and send back a pong to the health checker */
 	void pong_health_checker();
 	/* Function for creating a thread that elaborates a request */
-	void create_thread(int32_t parameter);
+	void create_thread(std::string parameter);
 
 public:
 	Server(uint8_t id, uint8_t service, std::string broker_addr);
 	void step();
 	~Server();
 };
+
+inline void deserialize(std::stringstream& params) {}
+
+template<typename head, typename... tail>
+void deserialize(std::stringstream& params, head& h, tail&... t)
+{
+	params >> h;
+}
 
 #endif /* INCLUDE_SERVER_CLASS_HPP_ */

@@ -179,7 +179,10 @@ void Broker::get_request()
 		/* Service available */
 		sm.heartbeat = false;
 		sm.seq_id = db->get_request_id(request.service);
-		sm.parameter = request.parameter;
+		memcpy(&sm.parameters, request.parameters,
+			sizeof(request.parameters));
+//		sm.parameter = request.parameters;
+//		write_log(log_file, my_name, "PARAMETER " + request.parameter);
 		buffer_in[DATA_FRAME].rebuild((void*) &sm,
 			sizeof(service_module));
 		num_copies_reliable = db->get_reliable_copies(request.service);

@@ -6,6 +6,7 @@
 #include <iostream>
 #include "../../include/rs_api.hpp"
 #include <stdio.h>
+#include <tuple>
 
 /**
  * @brief It requests to the broker to register the server copies. 

@@ -18,20 +18,17 @@ int32_t main(int32_t argc, char_t* argv[])
     	bool ret;
         int32_t result;
 	service_type_t service;
-        request_module rm;
    	zmq::context_t context(1);
    	zmq::socket_t socket(context, ZMQ_REQ);
 	
 	/* Parsing the arguments */
 	get_arg(argc, argv, service, 1);
 	
-   	std::cout << "Connecting to the server…" << std::endl;
+	std::cout << "Connecting to the server…" << std::endl;
 	socket.connect("tcp://localhost:5559");
 
-	rm.service = service;
-	rm.parameter = 2;
 	for (uint8_t i = 0; i < 5; i++) {
-                ret = request_service(rm, &socket, result);
+                ret = request_service2(service, &socket, result, 1, 9);
                 if (ret) {
                         std::cout << "Happy:)" << std::endl;
                         std::cout << "Result " << result << std::endl;
