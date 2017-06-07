@@ -22,7 +22,7 @@
 struct service_thread_t {
 //	int32_t parameter;
 	std::string parameters;
-	service_body<int32_t> service;
+	service_body service;
 	service_type_t service_type;
 	uint8_t id;
 	zmq::socket_t *skt;
@@ -36,7 +36,7 @@ private:
 	/* Service type that must be provided */
 	service_type_t service_type;
 	/* Service to be provided */
-	service_body<int32_t> service;
+	service_body service;
 	/* Ping seq id */
 	uint64_t ping_id;
 	/* Ping request id */
@@ -74,13 +74,5 @@ public:
 	void step();
 	~Server();
 };
-
-inline void deserialize(std::stringstream& params) {}
-
-template<typename head, typename... tail>
-void deserialize(std::stringstream& params, head& h, tail&... t)
-{
-	params >> h;
-}
 
 #endif /* INCLUDE_SERVER_CLASS_HPP_ */

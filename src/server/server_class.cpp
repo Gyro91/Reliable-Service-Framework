@@ -272,21 +272,19 @@ void *task(void *arg)
 {	
 	int32_t val_elab;
 	int32_t par1;
-	int32_t par2;
+	float32_t par2;
 	server_reply_t server_reply;
 	zmq::message_t msg(sizeof(server_reply_t));
 	service_thread_t *st = static_cast<service_thread_t *> (arg);
 	std::stringstream par_stream(st->parameters, std::ios_base::in);
 	
 	busy_wait(1000);
-	
+
 	deserialize(par_stream, par1, par2);
 	
 	std::cout << "PAR1: " << par1 << " PAR2: " << par2 << std::endl;
 	
-	service_body<int32_t, int32_t> ciao = std::bind(&increment, std::placeholders::_1);
-	ciao(par1);
-//	val_elab = st->service(par1);
+	val_elab = st->service(par1);
 	
 	server_reply.id = st->id;
 	server_reply.heartbeat = false;

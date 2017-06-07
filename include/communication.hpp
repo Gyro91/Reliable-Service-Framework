@@ -102,4 +102,13 @@ void serialize(std::string &str, head h, tail... t)
 	serialize(str, t...);
 }
 
+inline void deserialize(std::stringstream& params) {}
+
+template<typename head, typename... tail>
+void deserialize(std::stringstream& params, head& h, tail&... t)
+{
+	params >> h;
+	deserialize(params, t...);
+}
+
 #endif /* INCLUDE_COMMUNICATION_HPP_ */

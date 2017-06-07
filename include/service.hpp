@@ -10,13 +10,12 @@
 #include <functional>
 
 enum service_type_t {
-	INCREMENT, DECREMENT, MULTIPLY2
+	INCREMENT, DECREMENT, MULTIPLY2, SUM
 };
 
-//typedef int32_t (*service_body)(int32_t);
-template <class T, class... Args> using service_body = std::function<T(Args...)>;
+typedef int32_t (*service_body)(int32_t);
 
-extern service_body<int32_t> get_service_body(service_type_t service);
+extern service_body get_service_body(service_type_t service);
 extern int32_t increment(int32_t x);
 extern int32_t decrement(int32_t x);
 extern int32_t multiply2(int32_t x);

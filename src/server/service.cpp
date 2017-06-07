@@ -77,20 +77,16 @@ service_body get_service_body(service_type_t service)
 
 	switch (service) {
 	case INCREMENT:
-//		body = &increment;
-		body = std::bind(&increment, std::placeholders::_1);
+		body = &increment;
 		break;
 	case DECREMENT:
-//		body = &decrement;
-		body = std::bind(&decrement, std::placeholders::_1);
+		body = &decrement;
 		break;
 	case MULTIPLY2:
-//		body = &multiply2;
-		body = std::bind(&multiply2, std::placeholders::_1);
+		body = &multiply2;
 		break;
 	case SUM:
 //		body = &sum;
-		body = std::bind(&sum, std::placeholders::_1, std::placeholders::_2);
 		break;
 	default:
 		std::cerr << "Service not supported! Server Crash" << std::endl;
