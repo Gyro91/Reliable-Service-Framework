@@ -59,9 +59,7 @@ Broker::Broker(uint8_t nmr, uint16_t port_router, uint16_t port_reg)
 
 	/* Creating a Service Database*/
 	db = new ServiceDatabase(nmr);
-	
-	/* Log directly to the console */
-	log_file = CONSOLE;
+
 	my_name = "Broker";
 }
 
@@ -86,12 +84,12 @@ Broker::~Broker()
 void Broker::step()
 {
 	for (;;) {
-		zmq::poll(items, 0);
+		zmq::poll(items, 50);
 		clock_gettime(CLOCK_MONOTONIC, &now);
 		
 		/* Check the ping from the health checker*/
 		if (items[HC_POLL_INDEX].revents & ZMQ_POLLIN) {
-			write_log(log_file, my_name, "Received ping from HC");
+			write_log(my_name, "Received ping from HC");
 			pong_health_checker();	
 		}
 		/* Check for a registration request */
@@ -110,13 +108,12 @@ void Broker::step()
 		
 		for (uint32_t i = 0; i < timeout.size(); i++) {
 			if (time_cmp(&now, &timeout[i]) == 1) {
-				write_log(log_file, my_name, "Heartbeat");
+				write_log(my_name, "Heartbeat Timeout expired");
 				db->check_pong(available_services[i]);
 				ping_server(i, available_services[i]);
 				update_timeout(available_services[i]);
 			}
 		}
-		
 		check_pending_requests();
 	}
 }
@@ -181,8 +178,6 @@ void Broker::get_request()
 		sm.seq_id = db->get_request_id(request.service);
 		memcpy(&sm.parameters, request.parameters,
 			sizeof(request.parameters));
-//		sm.parameter = request.parameters;
-//		write_log(log_file, my_name, "PARAMETER " + request.parameter);
 		buffer_in[DATA_FRAME].rebuild((void*) &sm,
 			sizeof(service_module));
 		num_copies_reliable = db->get_reliable_copies(request.service);
@@ -217,7 +212,6 @@ void Broker::get_registration()
 			reg->send(message, ZMQ_SNDMORE);
 		if (!more) {
 			/* Receiving the registration module */
-			write_log(log_file, my_name, "Receiving registration");
 			registration_module rm = 
 			*(static_cast<registration_module*> 
 				(message.data()));
@@ -243,7 +237,6 @@ void Broker::get_registration()
 				timeout.push_back(timeout_tmp);
 			}
 			db->print_htable();
-			print_available_services();
 			/* Sending back the dealer port */
 			zmq::message_t reply(sizeof(ret));
 			memcpy(reply.data(), 
@@ -287,9 +280,9 @@ void Broker::get_response(uint32_t dealer_index)
 			(buffer_in[DATA_FRAME].data()));
 			
 	if (server_reply.heartbeat) {
-		write_log(log_file, my_name, "Pong from Server" + 
-			std::to_string((int32_t) server_reply.id) + " service " 
-			+ std::to_string(server_reply.service));
+		write_log(my_name, "Pong from Service " + 
+			std::to_string(server_reply.service) + " Server" +
+			std::to_string((int32_t) server_reply.id));
 		db->register_pong(server_reply.id, server_reply.service);
 	} else {
 		if (!server_reply.duplicated) {
@@ -329,7 +322,7 @@ void Broker::get_response(uint32_t dealer_index)
 	}
 }
 
-/*
+/**
  * @brief Implements the voting logic
  * @param values List containing the values returned from the servers
  * @return >0 index of the majority value, -1 there is no majority
@@ -418,8 +411,9 @@ void Broker::ping_server(uint8_t i, service_type_t service)
 	
 	for(uint8_t j = 0; j < num_copies_reliable; j++) {
 		send_multi_msg(dealer[i], buffer_in);
-		write_log(log_file, my_name, "Sending message " + 
-			std::to_string(sm.seq_id) + " to Server" + 
+		write_log(my_name, "Sending ping " + 
+			std::to_string(sm.seq_id) + " to Service " + 
+			std::to_string(service) + " Server " + 
 			std::to_string((int32_t) j));
 	}
 }
@@ -431,9 +425,13 @@ void Broker::ping_server(uint8_t i, service_type_t service)
 void Broker::print_available_services()
 {	
 	for (uint32_t i = 0; i < available_services.size(); i++)
-		write_log(log_file, my_name, "Service " +
+		write_log(my_name, "Service " +
 			std::to_string(available_services[i])); 
 }
+
+/**
+ * @brief Sends the pong message to the health checker
+ */
 
 void Broker::pong_health_checker()
 {
@@ -446,6 +444,11 @@ void Broker::pong_health_checker()
 	/* Send the pong */
 	hc->send(msg);
 }
+
+/**
+ * @brief Updates the timeout associated to a service
+ * @param service Service
+ */
 
 void Broker::update_timeout(service_type_t service)
 {
@@ -460,6 +463,10 @@ void Broker::update_timeout(service_type_t service)
 	time_add_ms(&timeout_tmp, HEARTBEAT_INTERVAL);
 	timeout[i] = timeout_tmp;
 }
+
+/**
+ * @brief Checks if a service timeout has expired
+ */
 
 void Broker::check_pending_requests()
 {
@@ -476,7 +483,6 @@ void Broker::check_pending_requests()
 		for (uint32_t j = 0; j < pending_requests.size(); j++) {
 			if (time_cmp(&now, &pending_requests[j].timeout) == 1) {
 				ret = vote(pending_requests[j].results, result);
-				write_log(log_file, my_name, "paolo rieccomi dentro" + std::to_string(ret));
 				if (ret >= 0) {
 					response.service_status = 
 						SERVICE_AVAILABLE;

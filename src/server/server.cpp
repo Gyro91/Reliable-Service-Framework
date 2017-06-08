@@ -26,8 +26,6 @@ int32_t main(int32_t argc, char_t* argv[])
 		exit(EXIT_FAILURE);
 	}
 	
-	std::cout <<"id " << (int32_t)id << " service " << (int32_t)service 
-		<< std::endl;	
 	server->step();	
 	
 	delete server;

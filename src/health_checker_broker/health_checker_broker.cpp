@@ -23,9 +23,9 @@ int32_t main(int32_t argc, char_t* argv[])
 	pid = fork();
 	if (pid == 0) {
 		/* New server process */
-		ret = execlp("./broker", name, (char_t *) NULL);
+		ret = execlp("./RSF_broker", name, (char_t *) NULL);
 		if (ret == -1) {
-			perror("Error execlp on restarting broker");
+			perror("Error execlp on starting broker");
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -37,8 +37,6 @@ int32_t main(int32_t argc, char_t* argv[])
 		std::cerr << "bad_alloc caught: " << ba.what() <<  std::endl;
 		exit(EXIT_FAILURE);
 	}
-	
-	std::cout <<"Broker PID: " << pid << std::endl;
 		
 	hcb->step();	
 	

@@ -19,7 +19,7 @@
 HealthCheckerBroker::HealthCheckerBroker(pid_t pid, uint16_t port) 
 	: HealthChecker(pid, port)
 {
-
+	this->my_name = "HC_Broker";
 }
 
 HealthCheckerBroker::~HealthCheckerBroker()
@@ -50,7 +50,7 @@ void HealthCheckerBroker::step()
 		timeout = true;
 		
 		if (item.revents & ZMQ_POLLIN) {
-			write_log(log_file, my_name,
+			write_log(my_name,
 				"Received pong from broker");
 			hb_skt->recv(&buffer);
 			hb_liveness = HEARTBEAT_LIVENESS;
@@ -67,11 +67,11 @@ void HealthCheckerBroker::step()
 				pong_arrived = false;
 			} else if (--hb_liveness == 0) {
 				hb_liveness = HEARTBEAT_LIVENESS;
-				write_log(log_file, my_name,
+				write_log(my_name,
 				          "Broker down... Restarting");
 				restart_process();
 			} else
-				write_log(log_file, my_name,
+				write_log(my_name,
 				          "Broker timeout");
 		}
 	}
@@ -86,13 +86,13 @@ void HealthCheckerBroker::restart_process()
 	pid = fork();
 	if (pid == 0) {
 		/* New server process */
-		ret = execlp("./broker", name, (char_t *) NULL);
+		ret = execlp("./RSF_broker", name, (char_t *) NULL);
 		if (ret == -1) {
 			perror("Error execlp on restarting broker");
 			exit(EXIT_FAILURE);
 		}
 	}
-	write_log(log_file, my_name, "Broker restarted, new PID: " + 
+	write_log(my_name, "Broker restarted, new PID: " + 
 		std::to_string(pid));
 }
 

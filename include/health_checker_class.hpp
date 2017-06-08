@@ -26,8 +26,6 @@ protected:
 	pid_t pid;
 	/* Heartbeat liveness */
 	uint8_t hb_liveness;
-	/* Output stream for the log file */
-	std::ostream *log_file;
 	/* Identificator used for logging */
 	std::string my_name;
 	

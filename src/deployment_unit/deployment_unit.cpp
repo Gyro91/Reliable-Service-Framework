@@ -34,8 +34,6 @@ void deployment(uint8_t service, uint8_t num_copy_server,
 	/* Server copies deployment */
 	for (;;) {
 		if (i == num_copy_server) {
-			std::cout << "#Deployment_Unit: "
-				"Server copies deployed" << std::endl;
 			/* Wait on the children */
 			while (true)
 				wait(&status);
@@ -46,7 +44,7 @@ void deployment(uint8_t service, uint8_t num_copy_server,
 		/* Start the health checker process */
 		hc_pid = fork();
 		if (hc_pid == 0) {
-			ret = execlp("./health_checker_server", &server_service,
+			ret = execlp("./RSF_start_server", &server_service,
 				&i, (char_t *)NULL);
 			if (ret == -1) {
 				perror("Error execlp on healt_checker_server");
@@ -80,8 +78,6 @@ int32_t main(int32_t argc, char_t* argv[])
 	}
 
 	/* Spawning server copies */
-	std::cout << "#Deployment_Unit: Spawning server copies"
-			<< std::endl;
 	deployment(service, num_copy_server, list_server_pid, &status);
 
 	

@@ -8,6 +8,7 @@
 #include <time.h>
 #include <pthread.h>
 #include <ctime>
+#include <thread>
 #include "../../include/server_class.hpp"
 #include "../../include/communication.hpp"
 #include "../../include/util.hpp"
@@ -58,8 +59,6 @@ Server::Server(uint8_t id, uint8_t service_type, std::string broker_address)
 	hc_pong = add_socket(context, ANY_ADDRESS, SERVER_PONG_PORT + id +
 		service_type * MAX_NMR, ZMQ_REP, BIND);
 	my_name = "Server" + std::to_string((int32_t)id);
-	/* Log directly to the console */
-	log_file = CONSOLE;
 }
 
 /**
@@ -81,7 +80,7 @@ Server::~Server()
 void Server::step()
 {	 
 	uint64_t received_id;
-	char_t val[100];
+	char_t val[PARAM_SIZE];
 	int32_t ping_loss = 0;
 	struct timespec tmp_t, time_t;
 	bool heartbeat, reg_ok = false;
@@ -103,12 +102,12 @@ void Server::step()
 			clock_gettime(CLOCK_MONOTONIC, &time_t);
 			time_add_ms(&time_t, 
 					HEARTBEAT_INTERVAL + WCDPING);
-			write_log(log_file, my_name, " Received message " + 
-				std::to_string(received_id) + " expected " +
-				std::to_string(ping_id));
 			if (!heartbeat) {
 				if (request_id == 0)
 					request_id = received_id;
+				write_log(my_name, "Received request " + 
+				std::to_string(received_id) + " expected " +
+				std::to_string(request_id));
 				if (received_id == request_id) {
 					request_id++;
 					/* Spawning a thread to service 
@@ -130,10 +129,13 @@ void Server::step()
 			} else {
 				if (ping_id == 0)
 					ping_id = received_id;
+				write_log(my_name, "Received ping " + 
+				std::to_string(received_id) + " expected " +
+				std::to_string(ping_id));
 				if (received_id == ping_id) 
 					ping_id++;
 				
-				write_log(log_file, my_name, " Send pong " + 
+				write_log(my_name, "Send pong " + 
 					std::to_string(ping_id) + " to Broker");
 				pong_broker();
 			}
@@ -141,7 +143,7 @@ void Server::step()
 		
 		if (items[SERVER_PONG_INDEX].revents & ZMQ_POLLIN) {
 			/* Receive the ping from the health checker */
-			write_log(log_file, my_name, "Received ping from HC");
+			write_log(my_name, "Received ping from HC");
 			pong_health_checker();
 		}
 		
@@ -151,6 +153,9 @@ void Server::step()
 			this->broker_port = registrator->registration();
 			if (this->broker_port > 0 && this->broker_port <= 65535) 
 				{
+				write_log(my_name, "Registration Ok!" 
+					 " Received port " + 
+					std::to_string(this->broker_port));
 				/* In this case the REP socket requires 
 				 * the connect() method! */
 				delete reply;
@@ -176,13 +181,13 @@ void Server::step()
 		}
  
 		if (time_cmp(&tmp_t, &time_t) == 1 && reg_ok) {
-			write_log(log_file, my_name, "Broker ping timeout");
+			write_log(my_name, "Broker ping timeout");
 			clock_gettime(CLOCK_MONOTONIC, &time_t);
 				time_add_ms(&time_t, 
 				HEARTBEAT_INTERVAL + WCDPING);
 			/* Timeout expired. It is a Ping loss from the broker */
 			if (++ping_loss == LIVENESS) {
-				write_log(log_file, my_name, "Broker dead");
+				write_log(my_name, "Broker dead");
 				items.erase(items.end() - 1);
 				reg_ok = false;
 			}
@@ -209,9 +214,8 @@ bool Server::receive_request(char_t *val, uint64_t* received_id)
 	
 	if (sm.heartbeat == false) {
 		memcpy(val, sm.parameters, sizeof(sm.parameters));
-//		*val = sm.parameter;
-		std::cout << "Server " << (int32_t)id << " received: " <<
-		*val << std::endl;
+		std::string str(val);
+		write_log(my_name, "Received " + str);
 	}
 	
 	*received_id = sm.seq_id;
@@ -219,25 +223,6 @@ bool Server::receive_request(char_t *val, uint64_t* received_id)
 	return sm.heartbeat;
 }
 
-/**
- * @brief Sends back to the broker the results of the service.
- * @param val	Service result to be sent.
- */
-
-void Server::deliver_service(int32_t val)
-{
-	server_reply_t server_reply;
-	zmq::message_t msg(sizeof(server_reply_t));
-	
-	server_reply.id = NO_PONG;
-	server_reply.result = val;
-	server_reply.service = service_type;
-	
-	memcpy(msg.data(), (void *) &server_reply, sizeof(server_reply_t));
-	reply->send(msg);
-	std::cout << "Server " << (int32_t)id << " sent: " << val <<
-		std::endl;
-}
 
 /**
  * @brief It sends a pong to the broker 
@@ -256,6 +241,10 @@ void Server::pong_broker()
 	reply->send(msg);
 }
 
+/**
+ * @brief Sends a pong message to the health checker
+ */
+
 void Server::pong_health_checker()
 {
 	zmq::message_t msg;
@@ -268,51 +257,41 @@ void Server::pong_health_checker()
 	hc_pong->send(msg);
 }
 
-void *task(void *arg) 
+void task(service_thread_t st) 
 {	
 	int32_t val_elab;
 	int32_t par1;
-	float32_t par2;
 	server_reply_t server_reply;
 	zmq::message_t msg(sizeof(server_reply_t));
-	service_thread_t *st = static_cast<service_thread_t *> (arg);
-	std::stringstream par_stream(st->parameters, std::ios_base::in);
+	std::stringstream par_stream(st.parameters, std::ios_base::in);
 	
-	busy_wait(1000);
+	/* Simulate workload */
+	busy_wait(500);
 
-	deserialize(par_stream, par1, par2);
+	deserialize(par_stream, par1);
 	
-	std::cout << "PAR1: " << par1 << " PAR2: " << par2 << std::endl;
+	val_elab = st.service(par1);
 	
-	val_elab = st->service(par1);
-	
-	server_reply.id = st->id;
+	server_reply.id = st.id;
 	server_reply.heartbeat = false;
 	server_reply.result = val_elab;
-	server_reply.service = st->service_type;
+	server_reply.service = st.service_type;
 	server_reply.duplicated = false;
 	
 	memcpy(msg.data(), (void *) &server_reply, sizeof(server_reply_t));
-	st->skt->send(msg);
-	std::cout << "Thread " << (int32_t)st->id << " sent: " << val_elab <<
-		std::endl;
-	
-	pthread_exit(NULL);
+	st.skt->send(msg);
 }
+
+/**
+ * @brief Spawns a thread to handle the request
+ * @param parameters Service parameters
+ */
 
 void Server::create_thread(std::string parameters)
 {
-	pthread_t tid;
-	int32_t ret;
-	
 	service_thread.skt = reply;
 	service_thread.parameters = parameters;
 	
-	ret = pthread_create(&tid, NULL, task, 
-		(void *) &service_thread);
-	if (ret != 0) {
-		perror("Errror pthread_create");
-		exit(EXIT_FAILURE);
-	}
-	
+	std::thread (task, service_thread).detach();
 }
+

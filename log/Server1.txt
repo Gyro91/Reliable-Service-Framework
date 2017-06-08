@@ -1,0 +1,38 @@
+2017-6-8_18:47:45.552 Server1 Registration Ok! Received port 6000
+2017-6-8_18:47:45.673 Server1 Received ping from HC
+2017-6-8_18:47:46.539 Server1 Received 2 
+2017-6-8_18:47:46.539 Server1 Received request 0 expected 0
+2017-6-8_18:47:47.40 Server1 Received 2 
+2017-6-8_18:47:47.40 Server1 Received request 1 expected 1
+2017-6-8_18:47:47.540 Server1 Received 2 
+2017-6-8_18:47:47.540 Server1 Received request 2 expected 2
+2017-6-8_18:47:48.40 Server1 Received 2 
+2017-6-8_18:47:48.41 Server1 Received request 3 expected 3
+2017-6-8_18:47:48.541 Server1 Received 2 
+2017-6-8_18:47:48.541 Server1 Received request 4 expected 4
+2017-6-8_18:47:49.42 Server1 Received 2 
+2017-6-8_18:47:49.43 Server1 Received request 5 expected 5
+2017-6-8_18:47:49.543 Server1 Received 2 
+2017-6-8_18:47:49.543 Server1 Received request 6 expected 6
+2017-6-8_18:47:50.43 Server1 Received 2 
+2017-6-8_18:47:50.43 Server1 Received request 7 expected 7
+2017-6-8_18:47:50.544 Server1 Received 2 
+2017-6-8_18:47:50.544 Server1 Received request 8 expected 8
+2017-6-8_18:47:50.676 Server1 Received ping from HC
+2017-6-8_18:47:51.48 Server1 Received 2 
+2017-6-8_18:47:51.48 Server1 Received request 9 expected 9
+2017-6-8_18:47:51.548 Server1 Received 2 
+2017-6-8_18:47:51.549 Server1 Received request 10 expected 10
+2017-6-8_18:47:52.49 Server1 Received 2 
+2017-6-8_18:47:52.49 Server1 Received request 11 expected 11
+2017-6-8_18:47:52.549 Server1 Received 2 
+2017-6-8_18:47:52.550 Server1 Received request 12 expected 12
+2017-6-8_18:47:53.51 Server1 Received 2 
+2017-6-8_18:47:53.51 Server1 Received request 13 expected 13
+2017-6-8_18:47:53.551 Server1 Received 2 
+2017-6-8_18:47:53.551 Server1 Received request 14 expected 14
+2017-6-8_18:47:54.51 Server1 Received ping 0 expected 0
+2017-6-8_18:47:54.52 Server1 Send pong 1 to Broker
+2017-6-8_18:47:55.565 Server1 Received ping 1 expected 1
+2017-6-8_18:47:55.565 Server1 Send pong 2 to Broker
+2017-6-8_18:47:55.680 Server1 Received ping from HC

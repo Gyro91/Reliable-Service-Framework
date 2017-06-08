@@ -29,13 +29,9 @@ int32_t main(int32_t argc, char_t* argv[])
 	socket.connect("tcp://localhost:5559");
 
 	for (uint8_t i = 0; i < 5; i++) {
-                ret = request_service(service, &socket, result, 2, 9.2);
-                if (ret) {
-                        std::cout << "Happy:)" << std::endl;
+                ret = request_service(service, &socket, result, 2);
+                if (ret) 
                         std::cout << "Result " << result << std::endl;
-                }
-                else
-                        std::cout << "Sad:(" << std::endl;
         }
         
 	return EXIT_SUCCESS;

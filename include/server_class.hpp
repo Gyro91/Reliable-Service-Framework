@@ -52,15 +52,11 @@ private:
 	Registrator *registrator;
 	/* Poll set */
 	std::vector<zmq::pollitem_t> items;
-	/* Output stream for the log file */
-	std::ostream *log_file;
 	/* Identificator used for logging */
 	std::string my_name;
 	
 	/* Receive requests from the broker */
 	bool receive_request(char_t *val, uint64_t *received_id);
-	/* Send results to the broker */
-	void deliver_service(int32_t val);
 	/* Send a pong to the broker */
 	void pong_broker();
 	/* Receive the ping and send back a pong to the health checker */

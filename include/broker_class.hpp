@@ -51,8 +51,6 @@ private:
 	/* Vectors of times for heartbeating */
 	std::vector<struct timespec> timeout;
 	struct timespec now;
-	/* Output stream for the log file */
-	std::ostream *log_file;
 	/* Identificator used for logging */
 	std::string my_name;
 	

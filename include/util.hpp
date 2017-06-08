@@ -12,7 +12,7 @@
 #include "types.hpp"
 #include "service.hpp"
 
-#define CONSOLE &std::cout
+//#define CONSOLE_LOG
 #define ABS_YEAR 1900
 
 
@@ -39,6 +39,6 @@ extern int32_t time_cmp(struct timespec *, struct timespec *t2);
 
 extern void busy_wait(uint32_t );
 
-extern void write_log(std::ostream *, std::string, std::string);
+extern void write_log(std::string, std::string);
 
 #endif /* INCLUDE_CHECK_UTIL_HPP_ */

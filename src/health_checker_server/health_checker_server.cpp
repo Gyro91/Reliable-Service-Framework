@@ -32,7 +32,7 @@ int32_t main(int32_t argc, char_t* argv[])
 	srv_pid = fork();
 	if (srv_pid == 0) {
 		/* Becoming one of the redundant copies */
-		ret = execlp("./server", argv[0], argv[1],
+		ret = execlp("./RSF_server", argv[0], argv[1],
 			(char_t *)NULL);
 		if (ret == -1) {
 			perror("Error execlp on server");
@@ -48,10 +48,6 @@ int32_t main(int32_t argc, char_t* argv[])
 		std::cerr << "bad_alloc caught: " << ba.what() <<  std::endl;
 		exit(EXIT_FAILURE);
 	}
-	
-	std::cout <<"Server PID: " << srv_pid << " Server port: " << 
-		(int32_t)srv_port << " Liveness: " << HEARTBEAT_LIVENESS << 
-		std::endl << " Interval: " << HEARTBEAT_INTERVAL << std::endl;
 		
 	hb->step();	
 	

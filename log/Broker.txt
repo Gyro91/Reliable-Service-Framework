@@ -1,0 +1,123 @@
+2017-6-8_18:47:45.551 Broker Service: 0 Owner: pippo Copies: 1 Socket: 6000
+2017-6-8_18:47:45.552 Broker Service: 0 Owner: pippo Copies: 2 Socket: 6000
+2017-6-8_18:47:45.554 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000
+2017-6-8_18:47:45.666 Broker Received ping from HC
+2017-6-8_18:47:47.40 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1732610923 Voter values 3 
+2017-6-8_18:47:47.40 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1732610923 Voter values 3  Client id 1749388139 Voter values 
+2017-6-8_18:47:47.40 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1732610923 Voter values 3  Client id 1749388139 Voter values  Client id 1766165355 Voter values 
+2017-6-8_18:47:47.40 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1732610923 Voter values 3 3 
+2017-6-8_18:47:47.40 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1732610923 Voter values 3 3  Client id 1749388139 Voter values 
+2017-6-8_18:47:47.40 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1732610923 Voter values 3 3  Client id 1749388139 Voter values  Client id 1766165355 Voter values 
+2017-6-8_18:47:47.48 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1749388139 Voter values 
+2017-6-8_18:47:47.48 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1749388139 Voter values  Client id 1766165355 Voter values 
+2017-6-8_18:47:47.48 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1749388139 Voter values  Client id 1766165355 Voter values  Client id 1732610923 Voter values 3 
+2017-6-8_18:47:47.540 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1749388139 Voter values 3 
+2017-6-8_18:47:47.540 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1749388139 Voter values 3  Client id 1766165355 Voter values 
+2017-6-8_18:47:47.540 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1749388139 Voter values 3  Client id 1766165355 Voter values  Client id 1732610923 Voter values 3 
+2017-6-8_18:47:47.540 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1749388139 Voter values 3 3 
+2017-6-8_18:47:47.540 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1749388139 Voter values 3 3  Client id 1766165355 Voter values 
+2017-6-8_18:47:47.540 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1749388139 Voter values 3 3  Client id 1766165355 Voter values  Client id 1732610923 Voter values 3 
+2017-6-8_18:47:47.549 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1766165355 Voter values 
+2017-6-8_18:47:47.549 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1766165355 Voter values  Client id 1732610923 Voter values 3 
+2017-6-8_18:47:47.549 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1766165355 Voter values  Client id 1732610923 Voter values 3  Client id 1749388139 Voter values 3 
+2017-6-8_18:47:47.668 Broker Received ping from HC
+2017-6-8_18:47:48.41 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1766165355 Voter values 3 
+2017-6-8_18:47:48.41 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1766165355 Voter values 3  Client id 1732610923 Voter values 3 
+2017-6-8_18:47:48.41 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1766165355 Voter values 3  Client id 1732610923 Voter values 3  Client id 1749388139 Voter values 3 
+2017-6-8_18:47:48.41 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1766165355 Voter values 3 3 
+2017-6-8_18:47:48.41 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1766165355 Voter values 3 3  Client id 1732610923 Voter values 3 
+2017-6-8_18:47:48.41 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1766165355 Voter values 3 3  Client id 1732610923 Voter values 3  Client id 1749388139 Voter values 3 
+2017-6-8_18:47:48.49 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1732610923 Voter values 3 
+2017-6-8_18:47:48.49 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1732610923 Voter values 3  Client id 1749388139 Voter values 3 
+2017-6-8_18:47:48.49 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1732610923 Voter values 3  Client id 1749388139 Voter values 3  Client id 1766165355 Voter values 3 
+2017-6-8_18:47:48.541 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1732610923 Voter values 3 3 
+2017-6-8_18:47:48.541 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1732610923 Voter values 3 3  Client id 1749388139 Voter values 3 
+2017-6-8_18:47:48.541 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1732610923 Voter values 3 3  Client id 1749388139 Voter values 3  Client id 1766165355 Voter values 3 
+2017-6-8_18:47:48.542 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1749388139 Voter values 3 
+2017-6-8_18:47:48.542 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1749388139 Voter values 3  Client id 1766165355 Voter values 3 
+2017-6-8_18:47:48.542 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1749388139 Voter values 3  Client id 1766165355 Voter values 3  Client id 1732610923 Voter values 3 
+2017-6-8_18:47:48.549 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1749388139 Voter values 3 
+2017-6-8_18:47:48.549 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1749388139 Voter values 3  Client id 1766165355 Voter values 3 
+2017-6-8_18:47:48.549 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1749388139 Voter values 3  Client id 1766165355 Voter values 3  Client id 1732610923 Voter values 3 3 
+2017-6-8_18:47:49.42 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1749388139 Voter values 3 3 
+2017-6-8_18:47:49.42 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1749388139 Voter values 3 3  Client id 1766165355 Voter values 3 
+2017-6-8_18:47:49.42 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1749388139 Voter values 3 3  Client id 1766165355 Voter values 3  Client id 1732610923 Voter values 
+2017-6-8_18:47:49.44 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1766165355 Voter values 3 
+2017-6-8_18:47:49.44 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1766165355 Voter values 3  Client id 1732610923 Voter values 
+2017-6-8_18:47:49.56 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1766165355 Voter values 3 
+2017-6-8_18:47:49.56 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1766165355 Voter values 3  Client id 1732610923 Voter values 
+2017-6-8_18:47:49.56 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1766165355 Voter values 3  Client id 1732610923 Voter values  Client id 1749388139 Voter values 3 
+2017-6-8_18:47:49.543 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1766165355 Voter values 3 3 
+2017-6-8_18:47:49.543 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1766165355 Voter values 3 3  Client id 1732610923 Voter values 
+2017-6-8_18:47:49.543 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1766165355 Voter values 3 3  Client id 1732610923 Voter values  Client id 1749388139 Voter values 3 
+2017-6-8_18:47:49.543 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1732610923 Voter values 
+2017-6-8_18:47:49.543 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1732610923 Voter values  Client id 1749388139 Voter values 3 
+2017-6-8_18:47:49.543 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1732610923 Voter values  Client id 1749388139 Voter values 3  Client id 1766165355 Voter values 3 
+2017-6-8_18:47:49.557 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1732610923 Voter values 
+2017-6-8_18:47:49.557 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1732610923 Voter values  Client id 1749388139 Voter values 3 
+2017-6-8_18:47:49.557 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1732610923 Voter values  Client id 1749388139 Voter values 3  Client id 1766165355 Voter values 3 3 
+2017-6-8_18:47:49.671 Broker Received ping from HC
+2017-6-8_18:47:50.43 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1732610923 Voter values 3 
+2017-6-8_18:47:50.43 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1732610923 Voter values 3  Client id 1749388139 Voter values 3 
+2017-6-8_18:47:50.43 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1732610923 Voter values 3  Client id 1749388139 Voter values 3  Client id 1766165355 Voter values 
+2017-6-8_18:47:50.43 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1732610923 Voter values 3 3 
+2017-6-8_18:47:50.43 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1732610923 Voter values 3 3  Client id 1749388139 Voter values 3 
+2017-6-8_18:47:50.43 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1732610923 Voter values 3 3  Client id 1749388139 Voter values 3  Client id 1766165355 Voter values 
+2017-6-8_18:47:50.57 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1749388139 Voter values 3 
+2017-6-8_18:47:50.57 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1749388139 Voter values 3  Client id 1766165355 Voter values 
+2017-6-8_18:47:50.57 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1749388139 Voter values 3  Client id 1766165355 Voter values  Client id 1732610923 Voter values 3 
+2017-6-8_18:47:50.544 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1749388139 Voter values 3 
+2017-6-8_18:47:50.544 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1749388139 Voter values 3  Client id 1766165355 Voter values 
+2017-6-8_18:47:50.544 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1749388139 Voter values 3  Client id 1766165355 Voter values  Client id 1732610923 Voter values 3 3 
+2017-6-8_18:47:50.544 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1749388139 Voter values 3 
+2017-6-8_18:47:50.544 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1749388139 Voter values 3  Client id 1766165355 Voter values 
+2017-6-8_18:47:50.557 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1749388139 Voter values 3 
+2017-6-8_18:47:50.557 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1749388139 Voter values 3  Client id 1766165355 Voter values 
+2017-6-8_18:47:51.44 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1749388139 Voter values 3 3 
+2017-6-8_18:47:51.44 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1749388139 Voter values 3 3  Client id 1766165355 Voter values 
+2017-6-8_18:47:51.48 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1766165355 Voter values 
+2017-6-8_18:47:51.48 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1766165355 Voter values  Client id 1749388139 Voter values 3 
+2017-6-8_18:47:51.58 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1766165355 Voter values 
+2017-6-8_18:47:51.58 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1766165355 Voter values  Client id 1749388139 Voter values 3 3 
+2017-6-8_18:47:51.545 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1766165355 Voter values 3 
+2017-6-8_18:47:51.545 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1766165355 Voter values 3  Client id 1749388139 Voter values 
+2017-6-8_18:47:51.548 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1766165355 Voter values 3 3 
+2017-6-8_18:47:51.548 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1766165355 Voter values 3 3  Client id 1749388139 Voter values 
+2017-6-8_18:47:51.558 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1749388139 Voter values 
+2017-6-8_18:47:51.558 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1749388139 Voter values  Client id 1766165355 Voter values 3 
+2017-6-8_18:47:51.674 Broker Received ping from HC
+2017-6-8_18:47:52.45 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1749388139 Voter values 
+2017-6-8_18:47:52.45 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1749388139 Voter values  Client id 1766165355 Voter values 3 3 
+2017-6-8_18:47:52.49 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1749388139 Voter values 
+2017-6-8_18:47:52.59 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1749388139 Voter values 
+2017-6-8_18:47:52.546 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1749388139 Voter values 
+2017-6-8_18:47:52.549 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1749388139 Voter values 
+2017-6-8_18:47:52.560 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1749388139 Voter values 
+2017-6-8_18:47:53.47 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1749388139 Voter values 3 
+2017-6-8_18:47:53.51 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000 Client id 1749388139 Voter values 3 3 
+2017-6-8_18:47:53.60 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000
+2017-6-8_18:47:53.547 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000
+2017-6-8_18:47:53.551 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000
+2017-6-8_18:47:53.551 Broker Heartbeat Timeout expired
+2017-6-8_18:47:53.551 Broker Server0 Pong loss: 0
+2017-6-8_18:47:53.551 Broker Server1 Pong loss: 0
+2017-6-8_18:47:53.551 Broker Server2 Pong loss: 0
+2017-6-8_18:47:53.551 Broker Sending ping 0 to Service 0 Server 0
+2017-6-8_18:47:53.551 Broker Sending ping 0 to Service 0 Server 1
+2017-6-8_18:47:53.551 Broker Sending ping 0 to Service 0 Server 2
+2017-6-8_18:47:53.563 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000
+2017-6-8_18:47:53.676 Broker Received ping from HC
+2017-6-8_18:47:54.47 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000
+2017-6-8_18:47:54.49 Broker Pong from Service 0 Server0
+2017-6-8_18:47:54.51 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000
+2017-6-8_18:47:54.52 Broker Pong from Service 0 Server1
+2017-6-8_18:47:54.61 Broker Service: 0 Owner: pippo Copies: 3 Socket: 6000
+2017-6-8_18:47:54.62 Broker Pong from Service 0 Server2
+2017-6-8_18:47:55.565 Broker Heartbeat Timeout expired
+2017-6-8_18:47:55.565 Broker Sending ping 1 to Service 0 Server 0
+2017-6-8_18:47:55.565 Broker Sending ping 1 to Service 0 Server 1
+2017-6-8_18:47:55.565 Broker Sending ping 1 to Service 0 Server 2
+2017-6-8_18:47:55.565 Broker Pong from Service 0 Server2
+2017-6-8_18:47:55.565 Broker Pong from Service 0 Server0
+2017-6-8_18:47:55.565 Broker Pong from Service 0 Server1
+2017-6-8_18:47:55.680 Broker Received ping from HC

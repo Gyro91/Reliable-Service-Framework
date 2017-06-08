@@ -9,7 +9,7 @@
 #include <ctype.h>
 #include <zmq.hpp>
 #include <iostream>
-
+#include <fstream>
 #include <time.h>
 #include "../../include/util.hpp"
 #include "../../include/communication.hpp"
@@ -157,8 +157,6 @@ zmq::socket_t* add_socket(zmq::context_t *ctx, std::string addr, uint16_t port,
 	else
 		skt->connect(conf.c_str());
 	
-	std::cout << "Configuration: " << conf << std::endl;
-	
 	return skt; 
 }
 
@@ -269,21 +267,38 @@ void busy_wait(uint32_t ms)
 
 /**
  * @brief Writes a log row to an output stream (either the console or a file)
- * @param os Output stream to be used
  * @param who String representing who is writing the log row
  * @param what Information to log
  */
 
-void write_log(std::ostream *os, std::string who, std::string what)
+void write_log(std::string who, std::string what)
 {
 	tm *now_struct;
 	struct timespec now;
 	
 	clock_gettime(CLOCK_REALTIME, &now);
 	now_struct = localtime(&now.tv_sec);
-	*os << now_struct->tm_year + ABS_YEAR << "-" << ++now_struct->tm_mon <<
+	
+	#ifdef CONSOLE_LOG
+		
+		std::cout << now_struct->tm_year + ABS_YEAR << "-" << 
+		++now_struct->tm_mon <<
 		"-" << now_struct->tm_mday << "_" << now_struct->tm_hour << ":"
 		<< now_struct->tm_min << ":" << now_struct->tm_sec << "." << 
 		(int32_t)(now.tv_nsec / 1e6) << " " << who << " " << what <<
 		std::endl;
+	#else
+		std::filebuf fb;
+		fb.open("log/" + who + ".txt", std::ios::out | std::ios::app);
+		std::ostream os(&fb);
+		
+		os << now_struct->tm_year + ABS_YEAR << "-" << 
+		++now_struct->tm_mon <<
+		"-" << now_struct->tm_mday << "_" << now_struct->tm_hour << ":"
+		<< now_struct->tm_min << ":" << now_struct->tm_sec << "." << 
+		(int32_t)(now.tv_nsec / 1e6) << " " << who << " " << what <<
+		std::endl;
+		
+		fb.close();
+	#endif
 }

@@ -1,0 +1,6 @@
+2017-6-8_18:47:45.666 HC_Broker Received pong from broker
+2017-6-8_18:47:47.668 HC_Broker Received pong from broker
+2017-6-8_18:47:49.672 HC_Broker Received pong from broker
+2017-6-8_18:47:51.674 HC_Broker Received pong from broker
+2017-6-8_18:47:53.677 HC_Broker Received pong from broker
+2017-6-8_18:47:55.680 HC_Broker Received pong from broker

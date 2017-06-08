@@ -24,6 +24,10 @@ HealthCheckerServer::HealthCheckerServer(pid_t pid, uint16_t port, uint8_t serve
 {
 	this->server_id = server_id;
 	this->service = service;
+	this->my_name = "HC_Server" + std::to_string((int32_t) server_id);
+	
+	write_log(my_name, "Server PID " + std::to_string(pid) 
+		+ " Server port: " + std::to_string(port));
 }
 
 HealthCheckerServer::~HealthCheckerServer()
@@ -54,7 +58,7 @@ void HealthCheckerServer::step()
 		timeout = true;
 		
 		if (item.revents & ZMQ_POLLIN) {
-			write_log(log_file, my_name, 
+			write_log(my_name, 
 				"Received pong from server " + std::to_string(
 				(int32_t)server_id));
 			hb_skt->recv(&buffer);
@@ -72,11 +76,11 @@ void HealthCheckerServer::step()
 				pong_arrived = false;
 			} else if (--hb_liveness == 0){
 				hb_liveness = HEARTBEAT_LIVENESS;
-				write_log(log_file, my_name,
+				write_log(my_name,
 					"Server down... Restarting");
 				restart_process();
 				} else
-					write_log(log_file, my_name,
+					write_log(my_name,
 					"Server timeout");
 		}
 	}
@@ -92,14 +96,14 @@ void HealthCheckerServer::restart_process()
 	pid = fork();
 	if (pid == 0) {
 		/* New server process */
-		ret = execlp("./server", &server_service, &server_id,
+		ret = execlp("./RSF_server", &server_service, &server_id,
 					(char_t *)NULL);
 		if (ret == -1) {
 			perror("Error execlp on restarting server");
 			exit(EXIT_FAILURE);
 		}
 	}
-	write_log(log_file, my_name, "Server " + 
+	write_log(my_name, "Server " + 
 		std::to_string((int32_t)server_id) + " restarted, new PID: " + 
 		std::to_string(pid));
 }

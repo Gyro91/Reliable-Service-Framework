@@ -28,7 +28,6 @@ int32_t register_service(registration_module *reg_mod, zmq::socket_t *socket)
 	if (!send_reg) {
 		socket->send(request);
 		send_reg = true;
-		std::cout<<"Send"<<std::endl;
 	}
 
         /* Receiving an answer */
@@ -39,7 +38,6 @@ int32_t register_service(registration_module *reg_mod, zmq::socket_t *socket)
 		
 	send_reg = false;
 	dealer_port = *(static_cast<uint16_t*> (reply.data()));
-	std::cout << "Received Dealer port " << dealer_port << std::endl;
 	
 	return dealer_port;		
 }

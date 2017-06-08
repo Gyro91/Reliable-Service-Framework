@@ -6,6 +6,7 @@
 #include <iostream>
 #include <stdlib.h>
 #include <stdlib.h>
+#include <sstream>
 #include "../../include/service_database_class.hpp"
 
 /**
@@ -44,7 +45,7 @@ int32_t ServiceDatabase::find_registration(service_type_t service)
 	service_type_hash>::iterator i = services_db.find(service);
 	
 	if (i == services_db.end()) {
-		std::cout << service << " is not present" << std::endl;	
+		write_log("Broker", "Service is not present");
 		return SERVICE_NOT_FOUND;
 	} 
 		
@@ -88,7 +89,6 @@ uint16_t ServiceDatabase::push_registration(registration_module *reg_mod,
 		}
 		
 		services_db[service_type] = record;
-		
 		next_dealer_skt_index++;
 		
 		return dealer_socket++;
@@ -101,7 +101,7 @@ uint16_t ServiceDatabase::push_registration(registration_module *reg_mod,
 			
 		if ((i->second).num_copies_registered == nmr) 
 			ready = true;
-			
+		
 		return ((i->second).dealer_socket);
 	}
 
@@ -261,9 +261,9 @@ void ServiceDatabase::check_pong(service_type_t service)
 			it->second.lost_pong[j] < LIVENESS) {
 			/* It is pong loss */
 			it->second.lost_pong[j]++;
-			std::cout << "Server " << (int32_t) j << 
-			" Pong loss " << (int)it->second.lost_pong[j] 
-			<< std::endl;
+			write_log("Broker", "Server" + std::to_string(
+				(int32_t) j) + " Pong loss: " + std::to_string(
+				(int32_t) it->second.lost_pong[j]));
 			/* If the number of pong loss is equal to
 			 * liveness, the unit is unreliable */
 			if (it->second.lost_pong[j] == LIVENESS)
@@ -348,19 +348,26 @@ uint64_t ServiceDatabase::get_request_id(service_type_t service)
 
 void ServiceDatabase::print_htable()
 {
+	std::stringstream ss;
+	bool log = false;
+	
 	for (auto it : services_db) {
-    		std::cout << "Service: " << it.first << " Owner: " 
+    		ss << "Service: " << it.first << " Owner: " 
     		<< it.second.owner << " Copies: " << 
     		(uint32_t)it.second.num_copies_reliable << 
-    		" Socket: " << it.second.dealer_socket <<  std::endl;
+    		" Socket: " << it.second.dealer_socket;
 		
 		for (auto it_v : it.second.request_records) {
-			std::cout << "Client id " << (uint32_t)it_v.client_id 
+			ss << " Client id " << (uint32_t)it_v.client_id 
 			<< " Voter values ";
-			for (auto it_val : it_v.results) 
-				std::cout << it_val << " ";
-			std::cout << std::endl;
+			for (auto it_val : it_v.results) { 
+				ss << it_val << " ";
+			}
+			log = true;
+			write_log("Broker", ss.str());
 		}
+		if (!log)
+			write_log("Broker", ss.str());
 	}
 }
 

@@ -2,33 +2,33 @@ CC = g++
 CFLAGS = -Wall -std=c++11 -g -pedantic
 LDFLAGS = -L/usr/local/lib -lzmq 
 
-EXEC_1 = depl_unit
+EXEC_1 = RSF_deployment_unit
 SOURCES_1 = $(wildcard src/deployment_unit/*.cpp) 
 
 PATH_1 = src/deployment_unit/
 OBJECTS_1 = $(SOURCES_1:.cpp=.o)
 
-EXEC_2 = server
+EXEC_2 = RSF_server
 SOURCES_2 = $(wildcard src/server/*.cpp) 
 PATH_2 = src/server/
 OBJECTS_2 = $(SOURCES_2:.cpp=.o)
 
-EXEC_3 = broker
+EXEC_3 = RSF_broker
 SOURCES_3 = $(wildcard src/broker/*.cpp)
 PATH_3 = src/broker/
 OBJECTS_3 = $(SOURCES_3:.cpp=.o)
 
-EXEC_4 = client
+EXEC_4 = RSF_client
 SOURCES_4 = $(wildcard src/client/*.cpp) 
 PATH_4 = src/client/
 OBJECTS_4 = $(SOURCES_4:.cpp=.o)
 
-EXEC_5 = health_checker_server
+EXEC_5 = RSF_start_server
 SOURCES_5 = $(wildcard src/health_checker_server/*.cpp) 
 PATH_5 = src/health_checker_server/
 OBJECTS_5 = $(SOURCES_5:.cpp=.o)
 
-EXEC_6 = health_checker_broker
+EXEC_6 = RSF_start_broker
 SOURCES_6 = $(wildcard src/health_checker_broker/*.cpp)
 PATH_6 = src/health_checker_broker/
 OBJECTS_6 = $(SOURCES_6:.cpp=.o)
