@@ -41,14 +41,15 @@
 
 #define MAX_NMR 3
 
+#define PARAM_SIZE 100
+
 /**
  * @brief      client request module for the service
  */
  
 struct request_module {
 	service_type_t service;
-	char_t parameters[100];
-//	int32_t parameter;
+	char_t parameters[PARAM_SIZE];
 };
 
 /**
@@ -73,10 +74,11 @@ struct response_module {
  */
  
 struct service_module {
-	bool heartbeat;	 /* If true it is a ping, otherwise it's a service 
-			  * request */
+	/* If true it is a ping, otherwise it's a service 
+	 * request */
+	bool heartbeat;
 	uint64_t seq_id;
-	char_t parameters[100];
+	char_t parameters[PARAM_SIZE];
 };
 
 /**
@@ -93,6 +95,11 @@ struct server_reply_t {
 	uint8_t id; 
 };
 
+/**
+ * @brief Function used to serialize the parameters in a string
+ * @param str String used to store the serialized parameters
+ */
+
 inline void serialize(std::string &str) {}
 
 template<typename head, typename... tail>
@@ -101,6 +108,11 @@ void serialize(std::string &str, head h, tail... t)
 	str.append(std::to_string(h) + " ");
 	serialize(str, t...);
 }
+
+/**
+ * @brief Function used to deserialize the parameters stream
+ * @param params Stringstream used to parse the parameters
+ */
 
 inline void deserialize(std::stringstream& params) {}
 

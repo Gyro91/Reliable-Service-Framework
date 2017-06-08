@@ -1,15 +1,3 @@
-/* 	CLIENT-BROKER
- * 	uint8_t send_request(uint8_t id, int32_t param);
- *	uint8_t get_result(uint32_t* res);
- *
- */
- 
-/*
- * 	BROKER-SERVER
- *	uint8_t service_request(uint8_t id, int32_t param); 
- */
-
-
 #ifndef INCLUDE_RS_API_HPP_
 #define INCLUDE_RS_API_HPP_
 
@@ -33,6 +21,14 @@ struct registration_module {
 };
 
 extern int32_t register_service(registration_module *, zmq::socket_t *);
+
+/**
+ * @brief Function used by a client to request a service
+ * @param service Sevice id of the requested service
+ * @param socket Socket used to deliver the request
+ * @param result Variable used to store the request result
+ * @return true if the result is reliable, false otherwise
+ */
 
 template<typename... Types>
 bool request_service(service_type_t service, zmq::socket_t *socket,

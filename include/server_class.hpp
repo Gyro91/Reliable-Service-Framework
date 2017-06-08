@@ -20,7 +20,6 @@
 #define SERVER_PONG_INDEX 0
 
 struct service_thread_t {
-//	int32_t parameter;
 	std::string parameters;
 	service_body service;
 	service_type_t service_type;
