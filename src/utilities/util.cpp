@@ -11,6 +11,7 @@
 #include <iostream>
 #include <fstream>
 #include <time.h>
+#include <sys/stat.h>
 #include "../../include/util.hpp"
 #include "../../include/communication.hpp"
 
@@ -279,26 +280,33 @@ void write_log(std::string who, std::string what)
 	clock_gettime(CLOCK_REALTIME, &now);
 	now_struct = localtime(&now.tv_sec);
 	
-	#ifdef CONSOLE_LOG
-		
-		std::cout << now_struct->tm_year + ABS_YEAR << "-" << 
-		++now_struct->tm_mon <<
-		"-" << now_struct->tm_mday << "_" << now_struct->tm_hour << ":"
-		<< now_struct->tm_min << ":" << now_struct->tm_sec << "." << 
-		(int32_t)(now.tv_nsec / 1e6) << " " << who << " " << what <<
-		std::endl;
-	#else
-		std::filebuf fb;
-		fb.open("log/" + who + ".txt", std::ios::out | std::ios::app);
-		std::ostream os(&fb);
-		
-		os << now_struct->tm_year + ABS_YEAR << "-" << 
-		++now_struct->tm_mon <<
-		"-" << now_struct->tm_mday << "_" << now_struct->tm_hour << ":"
-		<< now_struct->tm_min << ":" << now_struct->tm_sec << "." << 
-		(int32_t)(now.tv_nsec / 1e6) << " " << who << " " << what <<
-		std::endl;
-		
-		fb.close();
-	#endif
+#ifdef CONSOLE_LOG
+	
+	std::cout << now_struct->tm_year + ABS_YEAR << "-" << 
+	++now_struct->tm_mon <<
+	"-" << now_struct->tm_mday << "_" << now_struct->tm_hour << ":"
+	<< now_struct->tm_min << ":" << now_struct->tm_sec << "." << 
+	(int32_t)(now.tv_nsec / 1e6) << " " << who << " " << what <<
+	std::endl;
+#else
+//	struct stat sb;
+//
+//	/* Check if the log/ directory already exists */
+//	if (stat("log/", &sb) != 0 || !S_ISDIR(sb.st_mode)) {
+//		mkdir("log/", 0666);
+//		chmod("log/", 0666);
+//	}
+	std::filebuf fb;
+	fb.open("log/" + who + ".txt", std::ios::out | std::ios::app);
+	std::ostream os(&fb);
+	
+	os << now_struct->tm_year + ABS_YEAR << "-" << 
+	++now_struct->tm_mon <<
+	"-" << now_struct->tm_mday << "_" << now_struct->tm_hour << ":"
+	<< now_struct->tm_min << ":" << now_struct->tm_sec << "." << 
+	(int32_t)(now.tv_nsec / 1e6) << " " << who << " " << what <<
+	std::endl;
+	
+	fb.close();
+#endif
 }

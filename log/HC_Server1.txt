@@ -1,4 +1,0 @@
-2017-6-8_18:47:45.546 HC_Server1 Server PID 9370 Server port: 7001
-2017-6-8_18:47:45.673 HC_Server1 Received pong from server 1
-2017-6-8_18:47:50.676 HC_Server1 Received pong from server 1
-2017-6-8_18:47:55.680 HC_Server1 Received pong from server 1

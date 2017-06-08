@@ -1,10 +1,5 @@
 *.o
-broker
-client
-depl_unit
-server
-health_checker_broker
-health_checker_server
+RSF_*
 !include/*
 !src/*
 src/*/*.o
