@@ -56,8 +56,6 @@ private:
 	
 	/* Function for voting */
 	int8_t vote(std::vector<int32_t> values, int32_t &result);
-	/* Function for sending a ping to all the servers */
-	void ping_servers();
 	/* Function for sending a ping to a group of servers */
 	void ping_server(uint8_t i, service_type_t service);
 	/* Function for adding a dealer socket */

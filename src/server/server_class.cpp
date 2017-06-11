@@ -26,7 +26,7 @@
  * 
  */
 
-Server::Server(uint8_t id, uint8_t service_type, std::string broker_address) 
+RSF_Server::RSF_Server(uint8_t id, uint8_t service_type, std::string broker_address) 
 {
 	this->id = id;
 	this->service_type = (service_type_t)service_type;
@@ -66,7 +66,7 @@ Server::Server(uint8_t id, uint8_t service_type, std::string broker_address)
  * 
  */
 
-Server::~Server()
+RSF_Server::~RSF_Server()
 {
 	delete context;
 	delete reply;
@@ -77,7 +77,7 @@ Server::~Server()
  * @brief Server step function used to perform all the computation.
  */
 
-void Server::step()
+void RSF_Server::step()
 {	 
 	uint64_t received_id;
 	char_t val[PARAM_SIZE];
@@ -204,7 +204,7 @@ void Server::step()
  * @return it returns true if it is a broker ping
  */
 
-bool Server::receive_request(char_t *val, uint64_t* received_id)
+bool RSF_Server::receive_request(char_t *val, uint64_t* received_id)
 {
 	zmq::message_t msg;
 	service_module sm;
@@ -228,7 +228,7 @@ bool Server::receive_request(char_t *val, uint64_t* received_id)
  * @brief It sends a pong to the broker 
  */
  
-void Server::pong_broker()
+void RSF_Server::pong_broker()
 {
 	server_reply_t server_reply;
 	zmq::message_t msg(sizeof(server_reply_t));
@@ -245,7 +245,7 @@ void Server::pong_broker()
  * @brief Sends a pong message to the health checker
  */
 
-void Server::pong_health_checker()
+void RSF_Server::pong_health_checker()
 {
 	zmq::message_t msg;
 	
@@ -287,7 +287,7 @@ void task(service_thread_t st)
  * @param parameters Service parameters
  */
 
-void Server::create_thread(std::string parameters)
+void RSF_Server::create_thread(std::string parameters)
 {
 	service_thread.skt = reply;
 	service_thread.parameters = parameters;

@@ -8,7 +8,7 @@
 #include "../../include/broker_class.hpp"
 #include "../../include/communication.hpp"
 #include "../../include/util.hpp"
-#include "../../include/rs_api.hpp"
+#include "../../include/rsf_api.hpp"
 
 /**
  * @brief Broker constructor that initializes alle the private data and
@@ -350,37 +350,6 @@ int8_t Broker::vote(std::vector<int32_t> values, int32_t &result)
 		return max;
 	} else return -1;
 
-}
-
-/**
- * @brief It sends a ping to all the servers
- */
- 
-void Broker::ping_servers()
-{
-	service_module sm;
-	uint8_t num_copies_reliable;
-	std::vector<zmq::message_t> buffer_in(NUM_FRAMES);
-	char_t address_ping[LENGTH_ID_FRAME];
-	
-	address_ping[0] = 0;
-	memset((address_ping + 1), 'a', LENGTH_ID_FRAME - 1);
-	
-	/* In order to reuse the same dealer port for receiving pong and
-	 * results we have to emulate the router-dealer-rep pattern */
-	sm.heartbeat = true;
-	for (uint32_t i = 0; i < dealer.size(); i++) {
-		buffer_in[ID_FRAME].rebuild((void*) &address_ping[0], 
-			sizeof(address_ping));
-		buffer_in[EMPTY_FRAME].rebuild((void*) "", 0);
-		buffer_in[DATA_FRAME].rebuild((void*) &sm,
-			sizeof(service_module));
-		num_copies_reliable = 
-			db->get_reliable_copies(available_services[i]);
-		
-		for(uint8_t j = 0; j < num_copies_reliable; j++) 
-			send_multi_msg(dealer[i], buffer_in);
-	}
 }
 
 /**

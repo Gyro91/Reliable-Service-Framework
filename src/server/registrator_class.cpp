@@ -8,7 +8,7 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include "../../include/registrator_class.hpp"
-#include "../../include/rs_api.hpp"
+#include "../../include/rsf_api.hpp"
 #include "../../include/communication.hpp"
 #include "../../include/util.hpp"
 

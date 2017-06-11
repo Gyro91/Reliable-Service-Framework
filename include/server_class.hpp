@@ -27,7 +27,7 @@ struct service_thread_t {
 	zmq::socket_t *skt;
 };
 
-class Server {
+class RSF_Server {
 
 private:
 	/* Idientifier among server copies */
@@ -65,9 +65,9 @@ private:
 	void create_thread(std::string parameter);
 
 public:
-	Server(uint8_t id, uint8_t service, std::string broker_addr);
+	RSF_Server(uint8_t id, uint8_t service, std::string broker_addr);
 	void step();
-	~Server();
+	~RSF_Server();
 };
 
 #endif /* INCLUDE_SERVER_CLASS_HPP_ */

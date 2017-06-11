@@ -10,7 +10,7 @@
 #include "types.hpp"
 #include "util.hpp"
 #include "service.hpp"
-#include "rs_api.hpp"
+#include "rsf_api.hpp"
 
 #define SERVICE_NOT_FOUND -1
 #define REG_FAIL 0
