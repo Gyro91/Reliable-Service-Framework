@@ -289,13 +289,12 @@ void write_log(std::string who, std::string what)
 	(int32_t)(now.tv_nsec / 1e6) << " " << who << " " << what <<
 	std::endl;
 #else
-//	struct stat sb;
-//
-//	/* Check if the log/ directory already exists */
-//	if (stat("log/", &sb) != 0 || !S_ISDIR(sb.st_mode)) {
-//		mkdir("log/", 0666);
-//		chmod("log/", 0666);
-//	}
+	struct stat sb;
+
+	/* Check if the 'log/' directory already exists */
+	if (stat("log/", &sb) != 0 || !S_ISDIR(sb.st_mode)) {
+		mkdir("log/", 0777);
+	}
 	std::filebuf fb;
 	fb.open("log/" + who + ".txt", std::ios::out | std::ios::app);
 	std::ostream os(&fb);

@@ -3,6 +3,7 @@ RSF_*
 !include/*
 !src/*
 src/*/*.o
+log/
 
 # Executables
 *.exe
