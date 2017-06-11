@@ -65,7 +65,8 @@ private:
 	void create_thread(std::string parameter);
 
 public:
-	RSF_Server(uint8_t id, uint8_t service, std::string broker_addr);
+	RSF_Server(uint8_t id, uint8_t service, std::string broker_addr,
+		uint16_t broker_port);
 	void step();
 	~RSF_Server();
 };

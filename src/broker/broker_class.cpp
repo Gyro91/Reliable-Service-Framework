@@ -19,7 +19,7 @@
  * 
  */
 
-Broker::Broker(uint8_t nmr, uint16_t port_router, uint16_t port_reg) 
+RSF_Broker::RSF_Broker(uint8_t nmr, uint16_t port_router, uint16_t port_reg) 
 {	
 	int32_t opt;
 
@@ -69,7 +69,7 @@ Broker::Broker(uint8_t nmr, uint16_t port_router, uint16_t port_reg)
  * @brief      Destroys the object.
  */
 
-Broker::~Broker()
+RSF_Broker::~RSF_Broker()
 {
 	delete router;
 	delete reg;
@@ -81,7 +81,7 @@ Broker::~Broker()
  * @brief      step function
  */
 
-void Broker::step()
+void RSF_Broker::step()
 {
 	for (;;) {
 		zmq::poll(items, 50);
@@ -124,7 +124,7 @@ void Broker::step()
  * @param[in]  dealer_port  The dealer port
  */
 
-void Broker::add_dealer(uint16_t dealer_port)
+void RSF_Broker::add_dealer(uint16_t dealer_port)
 {	
 	zmq::pollitem_t item;
 
@@ -141,7 +141,7 @@ void Broker::add_dealer(uint16_t dealer_port)
  * @brief      Gets the request from a client 
  */
  
-void Broker::get_request()
+void RSF_Broker::get_request()
 {	
 	int32_t ret;
 	request_module request;
@@ -195,7 +195,7 @@ void Broker::get_request()
  * @brief      Gets the registration from a server.
  */
 
-void Broker::get_registration()
+void RSF_Broker::get_registration()
 {	
 	int32_t more;
 	size_t more_size;
@@ -255,7 +255,7 @@ void Broker::get_registration()
  * @param      dealer_in     The dealer buffer
  */
 
-void Broker::get_response(uint32_t dealer_index)
+void RSF_Broker::get_response(uint32_t dealer_index)
 {	
 	int32_t num_copies, ret, result;
 	uint32_t i = 0;
@@ -328,7 +328,7 @@ void Broker::get_response(uint32_t dealer_index)
  * @return >0 index of the majority value, -1 there is no majority
  */
 
-int8_t Broker::vote(std::vector<int32_t> values, int32_t &result)
+int8_t RSF_Broker::vote(std::vector<int32_t> values, int32_t &result)
 {	
 	std::vector<uint8_t> count;
 	uint8_t max = 0;
@@ -358,7 +358,7 @@ int8_t Broker::vote(std::vector<int32_t> values, int32_t &result)
  * @param service service type
  */
 
-void Broker::ping_server(uint8_t i, service_type_t service)
+void RSF_Broker::ping_server(uint8_t i, service_type_t service)
 {
 	service_module sm;
 	uint8_t num_copies_reliable;
@@ -391,7 +391,7 @@ void Broker::ping_server(uint8_t i, service_type_t service)
  * @brief It prints all the available services 
  */
  
-void Broker::print_available_services()
+void RSF_Broker::print_available_services()
 {	
 	for (uint32_t i = 0; i < available_services.size(); i++)
 		write_log(my_name, "Service " +
@@ -402,7 +402,7 @@ void Broker::print_available_services()
  * @brief Sends the pong message to the health checker
  */
 
-void Broker::pong_health_checker()
+void RSF_Broker::pong_health_checker()
 {
 	zmq::message_t msg;
 	
@@ -419,7 +419,7 @@ void Broker::pong_health_checker()
  * @param service Service
  */
 
-void Broker::update_timeout(service_type_t service)
+void RSF_Broker::update_timeout(service_type_t service)
 {
 	uint32_t i;
 	struct timespec timeout_tmp;
@@ -437,7 +437,7 @@ void Broker::update_timeout(service_type_t service)
  * @brief Checks if a service timeout has expired
  */
 
-void Broker::check_pending_requests()
+void RSF_Broker::check_pending_requests()
 {
 	int32_t ret, result;
 	struct timespec now;

@@ -6,7 +6,6 @@
 #include <sstream> 
 #include <stdio.h>
 #include <time.h>
-#include <pthread.h>
 #include <ctime>
 #include <thread>
 #include "../../include/server_class.hpp"
@@ -22,11 +21,12 @@
  * @param service_t Service type to be deployed
  * @param server_p Server receive port
  * @param broker_addr Broker address
- * @param broker_p Broker port
+ * @param broker_port Broker registration port
  * 
  */
 
-RSF_Server::RSF_Server(uint8_t id, uint8_t service_type, std::string broker_address) 
+RSF_Server::RSF_Server(uint8_t id, uint8_t service_type, 
+	std::string broker_address, uint16_t broker_port) 
 {
 	this->id = id;
 	this->service_type = (service_type_t)service_type;
@@ -48,7 +48,7 @@ RSF_Server::RSF_Server(uint8_t id, uint8_t service_type, std::string broker_addr
 
 	try {
 		registrator = new Registrator(broker_address, 
-			(service_type_t) service_type, REG_PORT_BROKER, 
+			(service_type_t) service_type, broker_port, 
 			context);
 	} catch (std::bad_alloc& ba) {
 		std::cerr << "bad_alloc caught: " << ba.what() << std::endl;
@@ -292,6 +292,6 @@ void RSF_Server::create_thread(std::string parameters)
 	service_thread.skt = reply;
 	service_thread.parameters = parameters;
 	
-	std::thread (task, service_thread).detach();
+	std::thread(task, service_thread).detach();
 }
 

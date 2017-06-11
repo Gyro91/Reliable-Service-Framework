@@ -21,12 +21,12 @@
 #define DEALER_POLL_INDEX 3
 
 /**
- * @class Broker
+ * @class RSF_Broker
  * @file broker_class.hpp
  * @brief 
  */
  
-class Broker {
+class RSF_Broker {
 
 private:
 	/* Redundancy for the voter */
@@ -75,9 +75,9 @@ private:
 	/* Check if the timeout is elapsed for the pending requests */
 	void check_pending_requests();
 public:
-	Broker(uint8_t nmr, uint16_t port_router, uint16_t port_reg);
+	RSF_Broker(uint8_t nmr, uint16_t port_router, uint16_t port_reg);
 	void step();
-	~Broker();
+	~RSF_Broker();
 };
 
 #endif /* INCLUDE_BROKER_CLASS_HPP_ */
