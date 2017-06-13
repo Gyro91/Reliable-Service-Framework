@@ -54,6 +54,7 @@ int32_t register_service(registration_module *reg_mod, zmq::socket_t *socket)
 	bool ret;
 	zmq::message_t request(sizeof(registration_module));
 	
+	reg_mod->service = (service_type_t) htonl((uint32_t) reg_mod->service);
 	/* Sending request */
        	memcpy(request.data(), (void *) reg_mod, sizeof(registration_module));
 	if (!send_reg) {
@@ -68,7 +69,7 @@ int32_t register_service(registration_module *reg_mod, zmq::socket_t *socket)
 		return -1;
 		
 	send_reg = false;
-	dealer_port = *(static_cast<uint16_t*> (reply.data()));
-	
-	return dealer_port;		
+	dealer_port = ntohs(*(static_cast<uint16_t*> (reply.data())));
+
+	return dealer_port;
 }

@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include "../../include/health_checker_broker_class.hpp"
 #include "../../include/communication.hpp"
+#include "../../include/test.hpp"
 
 #define HB_ARGS 3
 

@@ -14,4 +14,6 @@
 #define SERVER_PONG_PORT 7000
 #define BROKER_PONG_PORT 8000
 
+#define NMR 3
+
 #endif /* INCLUDE_TEST_HPP_ */

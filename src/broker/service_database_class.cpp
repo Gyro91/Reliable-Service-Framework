@@ -306,7 +306,7 @@ uint8_t ServiceDatabase::get_reliable_copies(service_type_t service)
  * @return It returns the current ping id 
  */
  
-uint64_t ServiceDatabase::get_ping_id(service_type_t service)
+uint32_t ServiceDatabase::get_ping_id(service_type_t service)
 {
 	std::unordered_map<service_type_t, service_record, 
 		service_type_hash>::iterator it = 
@@ -327,7 +327,7 @@ uint64_t ServiceDatabase::get_ping_id(service_type_t service)
  * @return It returns the current request id for the specified service
  */
  
-uint64_t ServiceDatabase::get_request_id(service_type_t service)
+uint32_t ServiceDatabase::get_request_id(service_type_t service)
 {
 	std::unordered_map<service_type_t, service_record, 
 		service_type_hash>::iterator it = 

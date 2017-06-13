@@ -9,6 +9,8 @@
 #include <unistd.h>
 #include "../../include/health_checker_server_class.hpp"
 #include "../../include/communication.hpp"
+#include "../../include/test.hpp"
+
 
 int32_t main(int32_t argc, char_t* argv[])
 {	

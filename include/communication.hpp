@@ -6,8 +6,9 @@
 #ifndef INCLUDE_COMMUNICATION_HPP_
 #define INCLUDE_COMMUNICATION_HPP_
 
-#include "service.hpp"
+#include <arpa/inet.h>
 #include <string>
+#include "service.hpp"
 
 #define TCP_PROTOCOL "tcp://"
 #define IPC_PROTOCOL "ipc://"
@@ -15,9 +16,6 @@
 #define ANY_ADDRESS "*"
 #define BIND 0
 #define CONNECT 1
-#define REG_PORT_BROKER 5555
-#define ROUTER_PORT_BROKER 5559
-#define DEALER_START_PORT 6000
 #define MAX_LENGTH_STRING_PORT 6
 #define EMPTY_MSG (void*)""
 
@@ -36,10 +34,7 @@
 #define WCDPING 500
 #define NO_PONG -1
 
-#define SERVER_PONG_PORT 7000
-#define BROKER_PONG_PORT 8000
-
-#define MAX_NMR 3
+#define MAX_NMR 5
 
 #define PARAM_SIZE 100
 
@@ -77,7 +72,7 @@ struct service_module {
 	/* If true it is a ping, otherwise it's a service 
 	 * request */
 	bool heartbeat;
-	uint64_t seq_id;
+	uint32_t seq_id;
 	char_t parameters[PARAM_SIZE];
 };
 

@@ -10,13 +10,14 @@
 #include <thread>
 #include "../../include/server_class.hpp"
 #include "../../include/communication.hpp"
+#include "../../include/test.hpp"
 #include "../../include/util.hpp"
 
 #define MAX_LENGTH_STRING_PORT 6 /* Max number of char needed for data port */
 
 /**
  * @brief Server constructor that initializes alle the private data and
- * 	  claims memory for ZPQ sockets. Then it connects to the socket.
+ * 	  claims memory for ZMQ sockets. Then it connects to the socket.
  * @param id_server Identifier among server copies
  * @param service_t Service type to be deployed
  * @param server_p Server receive port
@@ -79,7 +80,7 @@ RSF_Server::~RSF_Server()
 
 void RSF_Server::step()
 {	 
-	uint64_t received_id;
+	uint32_t received_id;
 	char_t val[PARAM_SIZE];
 	int32_t ping_loss = 0;
 	struct timespec tmp_t, time_t;
@@ -118,7 +119,8 @@ void RSF_Server::step()
 						sizeof(server_reply_t));
 					server_reply.id = id;
 					server_reply.heartbeat = false;
-					server_reply.service = service_type;
+					server_reply.service = (service_type_t)
+						htonl((uint32_t) service_type);
 					server_reply.duplicated = true;
 					memcpy(msg.data(), (void*) 
 						&server_reply, 
@@ -204,22 +206,22 @@ void RSF_Server::step()
  * @return it returns true if it is a broker ping
  */
 
-bool RSF_Server::receive_request(char_t *val, uint64_t* received_id)
+bool RSF_Server::receive_request(char_t *val, uint32_t* received_id)
 {
 	zmq::message_t msg;
 	service_module sm;
 	
 	reply->recv(&msg);
 	sm = *(static_cast<service_module *> (msg.data()));
-	
+
 	if (sm.heartbeat == false) {
 		memcpy(val, sm.parameters, sizeof(sm.parameters));
 		std::string str(val);
-		write_log(my_name, "Received " + str);
+		write_log(my_name, "Received parameters " + str);
 	}
-	
-	*received_id = sm.seq_id;
-	
+
+	*received_id = ntohl(sm.seq_id);
+
 	return sm.heartbeat;
 }
 
@@ -234,7 +236,7 @@ void RSF_Server::pong_broker()
 	zmq::message_t msg(sizeof(server_reply_t));
 	
 	server_reply.id = id; /* Pong from server id */
-	server_reply.service = service_type;
+	server_reply.service = (service_type_t) htonl((uint32_t) service_type);
 	server_reply.heartbeat = true;
 	
 	memcpy(msg.data(), (void *) &server_reply, sizeof(server_reply_t));
@@ -274,8 +276,9 @@ void task(service_thread_t st)
 	
 	server_reply.id = st.id;
 	server_reply.heartbeat = false;
-	server_reply.result = val_elab;
-	server_reply.service = st.service_type;
+	server_reply.result = (int32_t) htonl(val_elab);
+	server_reply.service = (service_type_t) htonl((uint32_t)
+		st.service_type);
 	server_reply.duplicated = false;
 	
 	memcpy(msg.data(), (void *) &server_reply, sizeof(server_reply_t));

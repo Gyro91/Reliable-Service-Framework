@@ -37,9 +37,9 @@ private:
 	/* Service to be provided */
 	service_body service;
 	/* Ping seq id */
-	uint64_t ping_id;
+	uint32_t ping_id;
 	/* Ping request id */
-	uint64_t request_id;
+	uint32_t request_id;
 	/* Address and port for communication */
 	std::string broker_address;
 	int32_t broker_port;
@@ -56,7 +56,7 @@ private:
 	std::string my_name;
 	
 	/* Receive requests from the broker */
-	bool receive_request(char_t *val, uint64_t *received_id);
+	bool receive_request(char_t *val, uint32_t *received_id);
 	/* Send a pong to the broker */
 	void pong_broker();
 	/* Receive the ping and send back a pong to the health checker */

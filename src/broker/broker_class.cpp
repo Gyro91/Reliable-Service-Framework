@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include "../../include/broker_class.hpp"
 #include "../../include/communication.hpp"
+#include "../../include/test.hpp"
 #include "../../include/util.hpp"
 #include "../../include/rsf_api.hpp"
 
@@ -163,11 +164,13 @@ void RSF_Broker::get_request()
 		}
 	}
 
-	request = *(static_cast<request_module*> (buffer_in[DATA_FRAME].data())); 
+	request = *(static_cast<request_module*> (buffer_in[DATA_FRAME].data()));
+	request.service = (service_type_t) ntohl((uint32_t) request.service);
 	ret = db->find_registration(request.service);
 	if (ret == -1) {
 		/* Service not available */
-		response.service_status = SERVICE_NOT_AVAILABLE;
+		response.service_status = (service_status_t) htonl((uint32_t)
+			SERVICE_NOT_AVAILABLE);
 		buffer_in[DATA_FRAME].rebuild((void*) &response,
 			sizeof(response_module));
 		send_multi_msg(router, buffer_in);
@@ -175,7 +178,7 @@ void RSF_Broker::get_request()
 	} else {
 		/* Service available */
 		sm.heartbeat = false;
-		sm.seq_id = db->get_request_id(request.service);
+		sm.seq_id = htonl(db->get_request_id(request.service));
 		memcpy(&sm.parameters, request.parameters,
 			sizeof(request.parameters));
 		buffer_in[DATA_FRAME].rebuild((void*) &sm,
@@ -215,7 +218,8 @@ void RSF_Broker::get_registration()
 			registration_module rm = 
 			*(static_cast<registration_module*> 
 				(message.data()));
-			
+			rm.service = (service_type_t) ntohl((uint32_t)
+				rm.service);
 			/* Registering */
 			uint16_t ret = 
 			db->push_registration(&rm, available_dealer_port, 
@@ -237,6 +241,7 @@ void RSF_Broker::get_registration()
 				timeout.push_back(timeout_tmp);
 			}
 			db->print_htable();
+			ret = htons(ret);
 			/* Sending back the dealer port */
 			zmq::message_t reply(sizeof(ret));
 			memcpy(reply.data(), 
@@ -278,7 +283,10 @@ void RSF_Broker::get_response(uint32_t dealer_index)
 	
 	server_reply = *(static_cast<server_reply_t*>
 			(buffer_in[DATA_FRAME].data()));
-			
+	/* Handle endianess */
+	server_reply.result = (int32_t) ntohl(server_reply.result);
+	server_reply.service = (service_type_t) ntohl((uint32_t)
+		server_reply.service);
 	if (server_reply.heartbeat) {
 		write_log(my_name, "Pong from Service " + 
 			std::to_string(server_reply.service) + " Server" +
@@ -294,9 +302,11 @@ void RSF_Broker::get_response(uint32_t dealer_index)
 					/* Replace the data frame with the
 					 * one obtained from the voter.
 					 */
-					response.service_status = 
-						SERVICE_AVAILABLE;
-					response.result = result;
+					response.service_status =
+						(service_status_t) htonl(
+						(uint32_t) SERVICE_AVAILABLE);
+					response.result = (int32_t)
+						htonl(result);
 					buffer_in[DATA_FRAME].rebuild((void*)
 						&response, 
 						sizeof(response_module));
@@ -305,9 +315,12 @@ void RSF_Broker::get_response(uint32_t dealer_index)
 					db->delete_request(server_reply.service, 
 						client_id);
 				} else if (num_copies == nmr) {
-					response.service_status = 
-						SERVICE_NOT_RELIABLE;
-					response.result = result;
+					response.service_status =
+						(service_status_t)
+						htonl((uint32_t)
+						SERVICE_NOT_RELIABLE);
+					response.result = (int32_t)
+						htonl(result);
 					buffer_in[DATA_FRAME].rebuild((void*)
 						&response, 
 						sizeof(response_module));
@@ -371,7 +384,7 @@ void RSF_Broker::ping_server(uint8_t i, service_type_t service)
 	/* In order to reuse the same dealer port for receiving pong and
 	 * results we have to emulate the router-dealer-rep pattern */
 	sm.heartbeat = true;
-	sm.seq_id = db->get_ping_id(service);
+	sm.seq_id = htonl(db->get_ping_id(service));
 	buffer_in[ID_FRAME].rebuild((void*) &address_ping[0], 
 		sizeof(address_ping));
 	buffer_in[EMPTY_FRAME].rebuild((void*) "", 0);
@@ -381,7 +394,7 @@ void RSF_Broker::ping_server(uint8_t i, service_type_t service)
 	for(uint8_t j = 0; j < num_copies_reliable; j++) {
 		send_multi_msg(dealer[i], buffer_in);
 		write_log(my_name, "Sending ping " + 
-			std::to_string(sm.seq_id) + " to Service " + 
+			std::to_string(ntohl(sm.seq_id)) + " to Service " + 
 			std::to_string(service) + " Server " + 
 			std::to_string((int32_t) j));
 	}
@@ -453,17 +466,20 @@ void RSF_Broker::check_pending_requests()
 			if (time_cmp(&now, &pending_requests[j].timeout) == 1) {
 				ret = vote(pending_requests[j].results, result);
 				if (ret >= 0) {
-					response.service_status = 
-						SERVICE_AVAILABLE;
+					/* Sending not available */
+					response.service_status =
+						(service_status_t) htonl(
+						(uint32_t) SERVICE_AVAILABLE);
 				} else {
 					/* Sending not reliable service */
-					response.service_status = 
-						SERVICE_NOT_RELIABLE;
+					response.service_status =
+						(service_status_t) htonl(
+						(uint32_t) SERVICE_NOT_RELIABLE);
 				}
 				address[0] = 0;
 				memcpy((address + 1), &pending_requests[j].
 					client_id, LENGTH_ID_FRAME - 1);
-				response.result = result;
+				response.result = (int32_t) htonl(result);
 				buffer_in[ID_FRAME].rebuild((void*) &address[0],
 					sizeof(address));
 				buffer_in[EMPTY_FRAME].rebuild((void*)"", 0);

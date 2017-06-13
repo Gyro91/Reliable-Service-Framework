@@ -36,7 +36,7 @@ public:
 		serialize(serialized, args...);
 
 		std::strcpy (rm.parameters, serialized.c_str());
-		rm.service = service;
+		rm.service = (service_type_t) htonl((uint32_t) service);
 
 		/* Service Request */
 		zmq::message_t request(sizeof(request_module));
@@ -54,7 +54,7 @@ public:
 			std::cout << "Service not available" << std::endl;
 			return false;
 		}
-		result = response.result;
+		result = (int32_t) ntohl(response.result);
 
 		return true;
 	}

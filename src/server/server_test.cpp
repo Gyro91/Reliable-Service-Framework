@@ -6,10 +6,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
+#include <unistd.h>
 #include "../../include/types.hpp"
 #include "../../include/server_class.hpp"
 #include "../../include/test.hpp"
-#include <unistd.h>
 
 
 int32_t main(int32_t argc, char_t* argv[])
