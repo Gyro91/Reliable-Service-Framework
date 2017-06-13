@@ -357,7 +357,11 @@ int8_t RSF_Broker::vote(std::vector<int32_t> values, int32_t &result)
 	for (uint8_t i = 0; i < count.size(); i++)
 			if (count[i] > count[max])
 				max = i;
-				
+	
+	/* No result received from the server */
+	if (count.size() == 0)
+		return -1;
+		
 	if (count[max] > (nmr / 2)) {
 		result = values[max];
 		return max;
