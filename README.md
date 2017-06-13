@@ -5,7 +5,7 @@ a testing configuration. After the compilation, you can run the
 components by the following commands:
 
 ```
-	RSF_client -s i
+RSF_client -s i
 ```
 runs the client and requests the i-th service, where i belongs to [0, 2].
 ```
