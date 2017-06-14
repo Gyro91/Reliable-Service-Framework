@@ -47,10 +47,10 @@ public:
 		zmq::message_t reply;
 		socket->recv(&reply);
 		response = *(static_cast<response_module*> (reply.data()));
-		if (response.service_status == SERVICE_NOT_RELIABLE) {
+		if (ntohl(response.service_status) == SERVICE_NOT_RELIABLE) {
 			std::cout << "Service not reliable" << std::endl;
 			return false;
-		} else if (response.service_status ==  SERVICE_NOT_AVAILABLE) {
+		} else if (ntohl(response.service_status) ==  SERVICE_NOT_AVAILABLE) {
 			std::cout << "Service not available" << std::endl;
 			return false;
 		}
